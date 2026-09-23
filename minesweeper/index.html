@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Minesweeper · Arkade</title>
+<meta name="description" content="Minesweeper built for thumbs. Safe first tap, long-press to flag.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23e8b04b'/%3E%3Ccircle cx='20' cy='21' r='9' fill='%231f1b16'/%3E%3Cpath d='M20 7 V35 M6 21 H34 M10 11 L30 31 M30 11 L10 31' stroke='%231f1b16' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='17' cy='18' r='2.5' fill='%23fbf6ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b;--yes:#5f9e4c;--no:#d9452b;
+  --c1:#e07e57;--c2:#7fb6a8;--c3:#e8b04b;--c4:#8fb3dc}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{flex:none;height:8px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{flex:1;min-height:0;width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(24px,7.6vw,38px);letter-spacing:.04em;margin:0;line-height:1;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0;color:var(--muted);font-style:italic}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.modes{display:flex;justify-content:center;gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;
+  padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700;gap:8px}
+.stat{min-width:70px}
+.stat:last-child{text-align:right}
+.stat .k{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:21px;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center;position:relative}
+.tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:10px;
+  padding:10px 6px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.tool.primary{background:var(--ink);color:var(--card)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.tool .badge{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--card);font-size:13px}
+.tool.primary .badge{background:var(--card);color:var(--ink)}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--ink);padding:10px 12px}
+.turn{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.turn .who{color:var(--ink)}
+.msg{font-weight:700;font-size:15px;line-height:1.3;margin:4px 0 0;min-height:1.3em}
+.acts{display:flex;gap:8px;margin-top:8px}
+.acts:empty{display:none}
+.acts .tool{flex:1}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:22px 18px 18px;max-width:380px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink);max-height:calc(100dvh - 32px);overflow:auto}
+.card h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:24px;letter-spacing:.03em}
+.card p{margin:12px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card .btns .tool{padding:10px 16px}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+.stamp.good{color:var(--yes);border-color:var(--yes)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+.dots3::after{content:"";animation:dots 1s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+/* ===== Minesweeper ===== */
+#mgrid{display:grid;gap:2px;background:var(--ink);border:4px solid var(--ink);border-radius:10px;box-shadow:6px 6px 0 var(--ink);
+  touch-action:none;overflow:hidden}
+.mc{width:var(--cs);height:var(--cs);display:flex;align-items:center;justify-content:center;background:var(--card);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.12),inset 0 3px 0 rgba(255,255,255,.7);font-family:"Archivo Black",Impact,sans-serif;
+  font-size:calc(var(--cs)*.56);line-height:1;cursor:pointer;position:relative}
+.mc.open{background:#ddcca8;box-shadow:inset 0 2px 0 rgba(0,0,0,.08);cursor:default}
+.mc.open.n1{color:#3f7fc6}.mc.open.n2{color:#4f8f3e}.mc.open.n3{color:#d9452b}.mc.open.n4{color:#6a4fa8}
+.mc.open.n5{color:#a0522d}.mc.open.n6{color:#2a8a8a}.mc.open.n7{color:#1f1b16}.mc.open.n8{color:#777}
+.mc svg{width:72%;height:72%}
+.mc.boom{background:var(--no)}
+.mc.wrongflag{background:#f3c9bf}
+.mc.pressing{background:#fff1c7}
+.mc.reveal{animation:open .18s ease-out}
+@keyframes open{from{transform:scale(.7)}to{transform:none}}
+.flagmode .mc:not(.open){background:#fbeede}
+.modebtn[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--ink)}
+.modebtn svg{width:16px;height:16px;vertical-align:-3px;margin-right:4px}
+
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>MINESWEEPER</h1><p class="tag">dig smart. flag the rest.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
+  <nav class="modes" aria-label="Board size">
+    <button class="pill" data-lv="easy">Easy</button>
+    <button class="pill" data-lv="medium">Medium</button>
+    <button class="pill" data-lv="hard">Hard</button>
+  </nav>
+  <section class="hud">
+    <div class="stat"><span class="k">Mines</span><span class="v" id="left">10</span></div>
+    <div class="label" id="label">Easy · best –</div>
+    <div class="stat"><span class="k">Time</span><span class="v" id="timer">0:00</span></div>
+  </section>
+  <div class="stage" id="stage"><div id="mgrid"></div></div>
+  <section class="tools">
+    <button class="tool modebtn" id="modeBtn" aria-pressed="false"></button>
+    <button class="tool" id="newBtn">New game</button>
+  </section>
+
+</main>
+<template id="howto"><ul>
+  <li>Clear every square that isn't a mine. Your first tap is always safe.</li>
+  <li>A number tells you how many mines touch that square, including diagonals.</li>
+  <li><b>Long-press</b> a square to flag it. Or switch the button at the bottom to <b>Flag</b> mode and just tap.</li>
+  <li>Tap a number that already has enough flags around it to clear all its other neighbors at once.</li>
+  <li>Easy is 9×9 with 10 mines, Medium is 10×14 with 24, and Hard is 12×18 with 44.</li>
+</ul>
+</template>
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+function recordLine(){return typeof RECORD_LINE==='function'?RECORD_LINE():''}
+$('#infoBtn').onclick=()=>{
+  const rec=recordLine();
+  showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec}</p>`:''}<h3>How to play</h3>${$('#howto').innerHTML}</div>
+    <div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+  $('#infoClose').onclick=hideOverlay;
+};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+
+/* ===== Minesweeper ===== */
+const LEVELS={easy:{c:9,r:9,m:10,name:'Easy'},medium:{c:10,r:14,m:24,name:'Medium'},hard:{c:12,r:18,m:44,name:'Hard'}};
+const MINE='<svg viewBox="0 0 20 20"><path d="M10 1.5V18.5M1.5 10H18.5M4 4L16 16M16 4L4 16" stroke="#1f1b16" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="10" r="5.6" fill="#1f1b16"/><circle cx="8.2" cy="8.2" r="1.6" fill="#fbf6ea"/></svg>';
+const FLAG='<svg viewBox="0 0 20 20"><path d="M6 2.5V17.5" stroke="#1f1b16" stroke-width="2.2" stroke-linecap="round"/><path d="M6.5 3L16 7L6.5 11Z" fill="#d9452b" stroke="#1f1b16" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 17.5H11" stroke="#1f1b16" stroke-width="2.2" stroke-linecap="round"/></svg>';
+let LV=store.get('ms-lv','easy'),FLAGMODE=false;
+let G=null,cells=[],timer=null;
+const RECORD_LINE=()=>['easy','medium','hard'].map(k=>{const b=store.get('ms-best-'+k,null);return `${LEVELS[k].name}: ${b?fmt(b):'–'}`}).join(' · ');
+const grid=$('#mgrid');
+
+function newGame(){
+  hideOverlay();clearInterval(timer);
+  const L=LEVELS[LV];
+  G={...L,mines:null,open:new Uint8Array(L.c*L.r),flag:new Uint8Array(L.c*L.r),adj:null,start:null,done:false,opened:0};
+  grid.innerHTML='';cells=[];
+  grid.style.gridTemplateColumns=`repeat(${L.c},var(--cs))`;
+  for(let i=0;i<L.c*L.r;i++){const d=document.createElement('div');d.className='mc';d.dataset.i=i;grid.appendChild(d);cells.push(d)}
+  fit();hud();$('#timer').textContent='0:00';
+  document.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lv===LV));
+}
+function fit(){
+  const st=$('#stage'),w=st.clientWidth-14,h=st.clientHeight-14;
+  const cs=Math.floor(Math.min((w-8-(G.c-1)*2)/G.c,(h-8-(G.r-1)*2)/G.r,46));
+  grid.style.setProperty('--cs',cs+'px');
+}
+addEventListener('resize',()=>G&&fit());
+function hud(){
+  const flags=G.flag.reduce((a,b)=>a+b,0);
+  $('#left').textContent=G.m-flags;
+  const b=store.get('ms-best-'+LV,null);
+  $('#label').textContent=`${G.name} · best ${b?fmt(b):'–'}`;
+  const mb=$('#modeBtn');mb.setAttribute('aria-pressed',FLAGMODE);
+  mb.innerHTML=FLAGMODE?FLAG.replace('<svg','<svg class="i"')+'Flag mode':'<svg viewBox="0 0 20 20"><path d="M4 16 L12 8 M10 4 L16 10 L14 12 L8 6Z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>Dig mode';
+  $('#stage').classList.toggle('flagmode',FLAGMODE);
+}
+const nbrs=i=>{const x=i%G.c,y=(i-x)/G.c,o=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<G.c&&Y<G.r)o.push(Y*G.c+X)}return o};
+function plant(safe){
+  const ban=new Set([safe,...nbrs(safe)]),pool=[];
+  for(let i=0;i<G.c*G.r;i++)if(!ban.has(i))pool.push(i);
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  G.mines=new Uint8Array(G.c*G.r);pool.slice(0,G.m).forEach(i=>G.mines[i]=1);
+  G.adj=new Uint8Array(G.c*G.r);for(let i=0;i<G.c*G.r;i++)G.adj[i]=nbrs(i).reduce((a,j)=>a+G.mines[j],0);
+  G.start=Date.now();timer=setInterval(()=>{if(!G.done)$('#timer').textContent=fmt(Date.now()-G.start)},250);
+}
+function paint(i,anim){
+  const d=cells[i];
+  if(G.open[i]){d.className='mc open'+(G.adj[i]?' n'+G.adj[i]:'')+(anim?' reveal':'');d.innerHTML=G.adj[i]||''}
+  else{d.className='mc';d.innerHTML=G.flag[i]?FLAG:''}
+}
+function reveal(i){
+  if(G.done||G.flag[i])return;
+  if(!G.mines)plant(i);
+  if(G.open[i]){chord(i);return}
+  if(G.mines[i])return lose(i);
+  const q=[i];G.open[i]=1;G.opened++;
+  while(q.length){const k=q.shift();paint(k,true);
+    if(G.adj[k]===0)for(const j of nbrs(k))if(!G.open[j]&&!G.flag[j]){G.open[j]=1;G.opened++;q.push(j)}}
+  checkWin();
+}
+function chord(i){
+  if(!G.adj[i])return;
+  const ns=nbrs(i),flags=ns.filter(j=>G.flag[j]).length;
+  if(flags!==G.adj[i])return;
+  for(const j of ns)if(!G.open[j]&&!G.flag[j]){if(G.mines[j])return lose(j);reveal(j);if(G.done)return}
+}
+function toggleFlag(i){
+  if(G.done||G.open[i])return;
+  G.flag[i]=G.flag[i]?0:1;paint(i);hud();if(navigator.vibrate)navigator.vibrate(18);
+}
+function checkWin(){
+  if(G.opened!==G.c*G.r-G.m)return;
+  G.done=true;clearInterval(timer);
+  for(let i=0;i<G.c*G.r;i++)if(G.mines[i]&&!G.flag[i]){G.flag[i]=1;paint(i)}
+  hud();
+  const t=Date.now()-G.start,key='ms-best-'+LV,best=store.get(key,null),isBest=best==null||t<best;
+  if(isBest)store.set(key,t);
+  $('#timer').textContent=fmt(t);
+  setTimeout(()=>{showOverlay(`<div class="stamp good">CLEARED</div><p class="stats">${fmt(t)} on ${G.name}</p>
+    <p>${isBest?'New personal best. Frame it.':`Best: ${fmt(best)}.`}</p>
+    <div class="btns"><button class="tool" id="closeO">Look at the board</button><button class="tool primary" id="again">Play again</button></div>`);
+    $('#again').onclick=newGame;$('#closeO').onclick=hideOverlay},500);
+}
+function lose(i){
+  G.done=true;clearInterval(timer);
+  for(let k=0;k<G.c*G.r;k++){
+    if(G.mines[k]&&!G.flag[k]){cells[k].className='mc open'+(k===i?' boom':'');cells[k].innerHTML=MINE}
+    else if(!G.mines[k]&&G.flag[k])cells[k].classList.add('wrongflag');
+  }
+  if(navigator.vibrate)navigator.vibrate([60,40,120]);
+  setTimeout(()=>{showOverlay(`<div class="stamp">BOOM</div><p>${G.opened} of ${G.c*G.r-G.m} squares cleared before it went off.</p>
+    <div class="btns"><button class="tool" id="closeO">Look at the board</button><button class="tool primary" id="again">Try again</button></div>`);
+    $('#again').onclick=newGame;$('#closeO').onclick=hideOverlay},700);
+}
+
+// ---------- touch: tap = dig (or flag in flag mode), long-press = flag ----------
+let press=null;
+grid.addEventListener('pointerdown',e=>{
+  const d=e.target.closest('.mc');if(!d||G.done)return;e.preventDefault();
+  const i=+d.dataset.i;
+  if(e.button===2){toggleFlag(i);return}
+  press={i,x:e.clientX,y:e.clientY,long:false,t:setTimeout(()=>{if(!press)return;press.long=true;d.classList.remove('pressing');toggleFlag(i)},340)};
+  if(!G.open[i])d.classList.add('pressing');
+});
+grid.addEventListener('pointermove',e=>{if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>12){clearTimeout(press.t);cells[press.i].classList.remove('pressing');press=null}});
+function release(e){
+  if(!press)return;clearTimeout(press.t);const {i,long}=press;press=null;cells[i].classList.remove('pressing');
+  if(long||e.type==='pointercancel')return;
+  if(FLAGMODE&&!G.open[i])toggleFlag(i);else reveal(i);
+}
+grid.addEventListener('pointerup',release);grid.addEventListener('pointercancel',release);
+grid.addEventListener('contextmenu',e=>{e.preventDefault()});
+$('#modeBtn').onclick=()=>{FLAGMODE=!FLAGMODE;hud()};
+$('#newBtn').onclick=newGame;
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{LV=b.dataset.lv;store.set('ms-lv',LV);newGame()});
+newGame();
+
+</script>
+</body>
+</html>
