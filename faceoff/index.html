@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Face Off · Arkade</title>
 <meta name="description" content="A guess-who duel against a bot. Ask smart, flip fast, name the face.">
 <meta name="theme-color" content="#f3ead8">
@@ -37,7 +43,7 @@ h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(34px,10vw,52px)
 .me.empty{opacity:.5}
 
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-@media (min-width:600px){.grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
 .fc{position:relative;aspect-ratio:.82;perspective:700px;cursor:pointer;border:0;padding:0;background:none;font:inherit}
 .fc .in{position:absolute;inset:0;transition:transform .42s cubic-bezier(.4,1.4,.5,1);transform-style:preserve-3d}
 .fc.down .in{transform:rotateY(180deg)}
@@ -101,18 +107,50 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-bottom:8px}
 .duo .fc{width:96px;display:block;cursor:default}
 .card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 .card .btns .tool{flex:0 1 auto;padding:10px 16px}
-.home{align-self:flex-start;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;background:var(--card);box-shadow:2px 2px 0 var(--ink);margin-bottom:-6px}
-.home:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+
+/* ===== app mode: one fixed screen, no page scroll ===== */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stripe{flex:none;height:8px}
+.app{flex:1;min-height:0;width:100%;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+details,footer{display:none!important}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-size:clamp(24px,7.6vw,38px);margin:0;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer;align-self:center}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.pill{padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap}
+.modes{gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center}
+.overlay .card{max-height:calc(100dvh - 32px);overflow:auto;-webkit-overflow-scrolling:touch}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul,.mbody ol{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+@media (hover:none){.tool:hover,.pill:hover{background:inherit}}
+.bar{position:static;margin:0;padding:0;background:none}
+.panel{padding:10px 12px}
+.msg{font-size:15px;line-height:1.3;height:3.9em;overflow:hidden;margin-top:4px}
+.acts{margin-top:8px}
+.grid{width:auto}
+.fc .nm{font-size:var(--nm,13px);padding:2px 1px 3px}
+.fc .back span{font-size:calc(var(--nm,13px) * 2.4)}
+.hud .stat .v{font-size:20px}
+.me svg{width:34px;height:34px}
 </style>
 </head>
 <body>
 <div class="stripe"></div>
 <main class="app">
-  <a class="home" href="../">&larr; Arkade</a>
-  <header>
-    <h1>FACE OFF</h1>
-    <p class="tag">you vs the bot. ask smart. flip fast.</p>
-  </header>
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>FACE OFF</h1>
+    <p class="tag">you vs the bot. ask smart. flip fast.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
 
   <nav class="modes" aria-label="Bot difficulty">
     <button class="pill" data-bot="easy">Easy bot</button>
@@ -125,7 +163,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding-bottom:8px}
     <div class="stat"><span class="k">Bot</span><span class="v" id="botLeft">24</span></div>
   </section>
 
-  <div class="grid" id="grid"></div>
+  <div class="stage" id="gwrap"><div class="grid" id="grid"></div></div>
 
   <details>
     <summary>How to play</summary>
@@ -254,10 +292,21 @@ function newGame(){
   G={phase:'choose',mine:null,botSecret:Math.floor(Math.random()*CAST.length),
      down:new Set(),botCands:CAST.map(c=>c.id),askedByMe:new Set(),askedByBot:new Set(),myQs:0,botQs:0,log:[],pick:null};
   grid.innerHTML=CAST.map(c=>cardHTML(c)).join('');
+  requestAnimationFrame(layoutGrid);
   $('#log').innerHTML='';
   renderMe();hud();
   setBar('Setup','Choose your character! Tap a face.',[['Random pick',()=>{choose(Math.floor(Math.random()*CAST.length))}]]);
 }
+function layoutGrid(){
+  const wrap=$('#gwrap'),w=wrap.clientWidth,h=wrap.clientHeight,gap=6;let best=null;
+  for(const cols of [3,4,6,8]){const rows=Math.ceil(CAST.length/cols);
+    const cw=Math.min((w-gap*(cols-1)-6)/cols,((h-gap*(rows-1)-6)/rows)*0.82);
+    if(!best||cw>best.cw)best={cols,cw}}
+  grid.style.gridTemplateColumns=`repeat(${best.cols},${Math.floor(best.cw)}px)`;
+  grid.style.gap=gap+'px';
+  grid.style.setProperty('--nm',Math.max(9,Math.min(13,best.cw*.18)).toFixed(1)+'px');
+}
+addEventListener('resize',()=>{if(G)layoutGrid()});
 function renderMe(){
   const me=$('#me');
   if(G.mine==null){me.classList.add('empty');me.querySelector('svg').innerHTML='';$('#meName').textContent='—';return}
@@ -412,6 +461,23 @@ document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{
 function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
 function hideOverlay(){$('#overlay').classList.add('hidden')}
 newGame();
+
+// ===== app mode helpers =====
+(function(){
+  const btn=document.getElementById('infoBtn');
+  if(btn)btn.onclick=()=>{
+    const secs=[...document.querySelectorAll('details')].map(d=>{
+      const list=d.querySelector('ul,ol');if(!list||!list.children.length)return '';
+      return `<h3>${d.querySelector('summary').textContent}</h3>${list.outerHTML}`}).join('');
+    const rec=document.getElementById('record');
+    showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec.textContent}</p>`:''}${secs}</div><div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+    document.getElementById('infoClose').onclick=hideOverlay;
+  };
+  // no pinch / double-tap zoom, no rubber-band page drag
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+  document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+})();
 </script>
 </body>
 </html>

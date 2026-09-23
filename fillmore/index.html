@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Fillmore · Arkade</title>
 <meta name="description" content="One line. Every block. No lifting, no crossing.">
 <meta name="theme-color" content="#f3ead8">
@@ -35,7 +41,7 @@ h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(34px,10vw,52px)
 .stage{display:flex;justify-content:center;align-items:center;min-height:240px}
 .stage.loading{font-weight:700;color:var(--muted)}
 #board{display:block;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
-#board .t{fill:var(--card);transition:fill .12s}
+#board .t{fill:var(--card)}
 #board .t.on{fill:var(--fill)}
 #board .t.hinted{animation:glow .5s ease-in-out 3}
 #board.won .t{animation:wave .45s ease-out both;transform-box:fill-box;transform-origin:center}
@@ -68,25 +74,49 @@ details ul{padding-left:18px;margin:8px 0 0;line-height:1.5}
 .card .stats{font-weight:700;font-size:18px}
 .card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 footer{text-align:center;color:var(--muted);font-size:12px}
-.home{align-self:flex-start;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;background:var(--card);box-shadow:2px 2px 0 var(--ink);margin-bottom:-6px}
-.home:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+
+/* ===== app mode: one fixed screen, no page scroll ===== */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stripe{flex:none;height:8px}
+.app{flex:1;min-height:0;width:100%;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+details,footer{display:none!important}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-size:clamp(24px,7.6vw,38px);margin:0;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer;align-self:center}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.pill{padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap}
+.modes{gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center}
+.overlay .card{max-height:calc(100dvh - 32px);overflow:auto;-webkit-overflow-scrolling:touch}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul,.mbody ol{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+@media (hover:none){.tool:hover,.pill:hover{background:inherit}}
+.hint-line{font-size:13px}
 </style>
 </head>
 <body>
 <div class="stripe"></div>
 <main class="app">
-  <a class="home" href="../">&larr; Arkade</a>
-  <header>
-    <h1>FILLMORE</h1>
-    <p class="tag">one line. no lifting. no excuses.</p>
-  </header>
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>FILLMORE</h1>
+    <p class="tag">one line. no lifting. no excuses.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
 
   <nav class="modes" aria-label="Puzzle mode">
     <button class="pill" data-mode="daily">Daily</button>
     <button class="pill" data-tier="easy">Easy</button>
     <button class="pill" data-tier="medium">Medium</button>
     <button class="pill" data-tier="hard">Hard</button>
-    <button class="pill" data-tier="extra">Extra Hard</button>
+    <button class="pill" data-tier="extra">Extra</button>
   </nav>
 
   <section class="hud">
@@ -256,7 +286,7 @@ function build(){
 }
 function fit(){
   if(!svg)return;
-  const avail=$('.app').clientWidth-32,maxH=Math.max(260,innerHeight*.58);
+  const st=$('#stage'),avail=st.clientWidth-4,maxH=st.clientHeight-4;
   const cell=Math.min(avail/(G.W+.3),maxH/(G.H+.3),84);
   svg.style.width=cell*(G.W+.3)+'px';svg.style.height=cell*(G.H+.3)+'px';
 }
@@ -291,7 +321,7 @@ function startTimer(){
 // ---------- input ----------
 function cellAt(e,strict){
   const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
-  const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+  const p=pt.matrixTransform(G.inv||svg.getScreenCTM().inverse());
   const x=Math.floor(p.x/U),y=Math.floor(p.y/U);
   if(x<0||y<0||x>=G.W||y>=G.H)return -1;
   if(strict){const fx=p.x/U-x,fy=p.y/U-y;if(fx<.15||fx>.85||fy<.15||fy>.85)return -1}
@@ -317,7 +347,7 @@ function visit(c,down){
 }
 function bindInput(){
   let drawing=false;
-  svg.addEventListener('pointerdown',e=>{if(G.done)return;e.preventDefault();drawing=true;
+  svg.addEventListener('pointerdown',e=>{if(G.done)return;e.preventDefault();drawing=true;G.inv=svg.getScreenCTM().inverse();
     try{svg.setPointerCapture(e.pointerId)}catch(_){}visit(cellAt(e,false),true)});
   svg.addEventListener('pointermove',e=>{if(drawing)visit(cellAt(e,true),false)});
   ['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,()=>drawing=false));
@@ -375,6 +405,23 @@ function win(){
 
 const last=store.get('fillmore-mode',null);
 if(last&&last.mode==='free')newGame('free',last.tier);else newGame('daily');
+
+// ===== app mode helpers =====
+(function(){
+  const btn=document.getElementById('infoBtn');
+  if(btn)btn.onclick=()=>{
+    const secs=[...document.querySelectorAll('details')].map(d=>{
+      const list=d.querySelector('ul,ol');if(!list||!list.children.length)return '';
+      return `<h3>${d.querySelector('summary').textContent}</h3>${list.outerHTML}`}).join('');
+    const rec=document.getElementById('record');
+    showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec.textContent}</p>`:''}${secs}</div><div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+    document.getElementById('infoClose').onclick=hideOverlay;
+  };
+  // no pinch / double-tap zoom, no rubber-band page drag
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+  document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+})();
 </script>
 </body>
 </html>
