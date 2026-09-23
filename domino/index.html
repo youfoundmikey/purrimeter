@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Domino · Arkade</title>
+<meta name="description" content="Draw dominoes against a bot. First to 50 points.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%237fb6a8'/%3E%3Crect x='12' y='5' width='16' height='30' rx='3' fill='%23fbf6ea' stroke='%231f1b16' stroke-width='2.5'/%3E%3Cpath d='M12 20 H28' stroke='%231f1b16' stroke-width='2'/%3E%3Ccircle cx='20' cy='12.5' r='2' fill='%231f1b16'/%3E%3Ccircle cx='16' cy='24' r='1.8' fill='%231f1b16'/%3E%3Ccircle cx='24' cy='31' r='1.8' fill='%231f1b16'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b;--yes:#5f9e4c;--no:#d9452b;
+  --c1:#e07e57;--c2:#7fb6a8;--c3:#e8b04b;--c4:#8fb3dc}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{flex:none;height:8px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{flex:1;min-height:0;width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(24px,7.6vw,38px);letter-spacing:.04em;margin:0;line-height:1;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0;color:var(--muted);font-style:italic}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.modes{display:flex;justify-content:center;gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;
+  padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700;gap:8px}
+.stat{min-width:70px}
+.stat:last-child{text-align:right}
+.stat .k{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:21px;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center;position:relative}
+.tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:10px;
+  padding:10px 6px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.tool.primary{background:var(--ink);color:var(--card)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.tool .badge{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--card);font-size:13px}
+.tool.primary .badge{background:var(--card);color:var(--ink)}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--ink);padding:10px 12px}
+.turn{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.turn .who{color:var(--ink)}
+.msg{font-weight:700;font-size:15px;line-height:1.3;margin:4px 0 0;min-height:1.3em}
+.acts{display:flex;gap:8px;margin-top:8px}
+.acts:empty{display:none}
+.acts .tool{flex:1}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:22px 18px 18px;max-width:380px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink);max-height:calc(100dvh - 32px);overflow:auto}
+.card h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:24px;letter-spacing:.03em}
+.card p{margin:12px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card .btns .tool{padding:10px 16px}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+.stamp.good{color:var(--yes);border-color:var(--yes)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+.dots3::after{content:"";animation:dots 1s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+/* ===== Domino ===== */
+.hud .mid{display:flex;flex-direction:column;align-items:center;gap:2px}
+.yard{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.minitile{width:12px;height:20px;border:2px solid var(--ink);border-radius:3px;background:var(--ink);display:inline-block}
+.bothand{display:flex;gap:3px;justify-content:center;min-height:22px}
+.bothand .minitile{width:11px;height:19px;background:repeating-linear-gradient(45deg,#e07e57 0 3px,#e8b04b 3px 6px)}
+.table{position:absolute;inset:0;border:3px solid var(--ink);border-radius:14px;background:#2f6d5a;
+  background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);background-size:5px 5px;box-shadow:inset 0 0 0 4px #3f8a72}
+.chain{position:absolute;inset:0}
+.tile{position:absolute;display:flex;background:var(--card);border:2px solid var(--ink);border-radius:calc(var(--u)*.14);
+  box-shadow:2px 2px 0 rgba(0,0,0,.35);transition:left .25s,top .25s}
+.tile.h{width:calc(var(--u)*2);height:var(--u);flex-direction:row}
+.tile.v{width:var(--u);height:calc(var(--u)*2);flex-direction:column}
+.half{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:14%;position:relative}
+.tile.h .half+.half{border-left:2px solid var(--ink)}
+.tile.v .half+.half{border-top:2px solid var(--ink)}
+.half i{width:62%;height:62%;border-radius:50%;background:var(--ink);place-self:center}
+.half i.o{visibility:hidden}
+.tile.new{animation:drop .3s cubic-bezier(.3,1.5,.5,1)}
+@keyframes drop{from{transform:scale(1.35);opacity:.2}to{transform:none;opacity:1}}
+.end{position:absolute;border:3px dashed #fff1c7;border-radius:8px;cursor:pointer;animation:pulse 1s ease-in-out infinite;background:rgba(255,241,199,.18)}
+@keyframes pulse{50%{background:rgba(255,241,199,.4)}}
+.hand{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:calc(var(--hu,30px)*2 + 6px);align-content:center}
+.hand .tile{position:relative;cursor:pointer;transition:transform .12s}
+.hand .tile.play{box-shadow:3px 3px 0 var(--ink);transform:translateY(-4px)}
+.hand .tile.dead{opacity:.45}
+.hand .tile.sel{outline:3px solid var(--accent);outline-offset:2px;transform:translateY(-9px)}
+.hand .tile.new{animation:drop .3s cubic-bezier(.3,1.5,.5,1)}
+.empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#cfe8dc;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px}
+
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>DOMINO</h1><p class="tag">match the ends. empty your hand.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
+  <nav class="modes" aria-label="Bot difficulty">
+    <button class="pill" data-bot="easy">Easy bot</button>
+    <button class="pill" data-bot="hard">Hard bot</button>
+  </nav>
+  <section class="hud">
+    <div class="stat"><span class="k">You</span><span class="v" id="sc0">0</span></div>
+    <div class="mid"><div class="bothand" id="bothand"></div><div class="yard"><span class="minitile"></span><span id="yard">14 left</span> · to 50</div></div>
+    <div class="stat"><span class="k">Bot</span><span class="v" id="sc1">0</span></div>
+  </section>
+  <div class="stage" id="stage"><div class="table"></div><div class="chain" id="chain"></div></div>
+  <div class="hand" id="hand"></div>
+  <div class="panel">
+    <div class="turn"><span class="who" id="who">Your turn</span><span id="round">Round 1</span></div>
+    <p class="msg" id="msg"></p>
+    <div class="acts" id="acts"></div>
+  </div>
+
+</main>
+<template id="howto"><ul>
+  <li>You and the bot get 7 dominoes each. The rest go face down in the boneyard.</li>
+  <li>On your turn, play a domino with a number that matches one of the two open ends. Tap a domino and it goes where it fits. If it fits both ends, tap the glowing end you want.</li>
+  <li>Can't play? Draw from the boneyard until you can. If the boneyard is empty, you pass.</li>
+  <li>Empty your hand first and you win the round. You score the total pips left in the bot's hand.</li>
+  <li>If nobody can move, the round is blocked and the lighter hand wins.</li>
+  <li>First to <b>50 points</b> takes the match. Easy bot plays whatever fits. Hard bot dumps heavy tiles and remembers which numbers you're missing.</li>
+</ul>
+</template>
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+function recordLine(){return typeof RECORD_LINE==='function'?RECORD_LINE():''}
+$('#infoBtn').onclick=()=>{
+  const rec=recordLine();
+  showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec}</p>`:''}<h3>How to play</h3>${$('#howto').innerHTML}</div>
+    <div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+  $('#infoClose').onclick=hideOverlay;
+};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+
+/* ===== Domino ===== */
+const TARGET=50;
+let BOT=store.get('dm-bot','hard'),REC=store.get('dm-record',{});
+const RECORD_LINE=()=>`Record vs ${BOT} bot: ${REC[BOT+'W']||0}–${REC[BOT+'L']||0}`;
+let M=null,R=null,selected=null,busy=false;
+const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const PIPS_V={6:[0,1,2,6,7,8]};  // six reads as two columns on an upright half
+const pipsum=t=>t[0]+t[1];
+const handSum=h=>h.reduce((a,t)=>a+pipsum(t),0);
+
+function tileEl(a,b,orient,u,extra=''){
+  const d=document.createElement('div');d.className=`tile ${orient} ${extra}`;d.style.setProperty('--u',u+'px');
+  for(const v of [a,b]){const h=document.createElement('div');h.className='half';
+    const on=new Set(orient==='h'&&PIPS_V[v]?PIPS_V[v]:PIPS[v]);
+    h.innerHTML=[...Array(9)].map((_,i)=>`<i class="${on.has(i)?'':'o'}"></i>`).join('');d.appendChild(h)}
+  return d;
+}
+
+// ---------- match / round ----------
+function newMatch(){hideOverlay();M={score:[0,0],round:0,lastWinner:null,id:Math.random()};newRound()}
+function newRound(){
+  M.round++;
+  const set=[];for(let a=0;a<=6;a++)for(let b=a;b<=6;b++)set.push([a,b]);
+  for(let i=set.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[set[i],set[j]]=[set[j],set[i]]}
+  R={hands:[set.slice(0,7),set.slice(7,14)],yard:set.slice(14),chain:[],passes:0,missing:new Set(),turn:0,over:false,fresh:null};
+  selected=null;
+  // opener: highest double (first round) or last winner
+  let who,tile;
+  if(M.lastWinner==null){
+    let best=null;
+    for(const p of [0,1])for(const t of R.hands[p])if(t[0]===t[1]&&(!best||t[0]>best.t[0]))best={p,t};
+    if(!best)for(const p of [0,1])for(const t of R.hands[p])if(!best||pipsum(t)>pipsum(best.t))best={p,t};
+    who=best.p;tile=best.t;
+    R.hands[who]=R.hands[who].filter(t=>t!==tile);R.chain=[[tile[0],tile[1]]];R.fresh=0;
+    say(`${who===0?'You':'The bot'} opened with the ${tile[0]}–${tile[1]}.`);
+    R.turn=1-who;
+  }else{R.turn=M.lastWinner;say(R.turn===0?'You won last round, so you lead. Play anything.':'The bot leads this round.')}
+  render();
+  if(R.turn===1)botTurn();else playerTurn();
+}
+function ends(){return R.chain.length?[R.chain[0][0],R.chain[R.chain.length-1][1]]:null}
+function fits(t){const e=ends();if(!e)return ['L'];const o=[];if(t[0]===e[0]||t[1]===e[0])o.push('L');if(t[0]===e[1]||t[1]===e[1])o.push('R');return o}
+function place(t,side){
+  const e=ends();let tile;
+  if(!e){tile=[t[0],t[1]];R.chain.push(tile);R.fresh=0;return}
+  if(side==='L'){tile=t[1]===e[0]?[t[0],t[1]]:[t[1],t[0]];R.chain.unshift(tile);R.fresh=0}
+  else{tile=t[0]===e[1]?[t[0],t[1]]:[t[1],t[0]];R.chain.push(tile);R.fresh=R.chain.length-1}
+}
+
+// ---------- rendering ----------
+function layoutChain(){
+  const box=$('#chain'),W=box.clientWidth-16,H=box.clientHeight-16,n=R.chain.length,gap=3;
+  let u=40,per,rows;
+  for(;u>=12;u--){per=Math.max(1,Math.floor((W+gap)/(2*u+gap)));rows=Math.ceil(n/per);if(rows*(u+gap*3)<=H)break}
+  return {u,per,rows,W,H,gap};
+}
+function render(){
+  const box=$('#chain');box.innerHTML='';
+  const n=R.chain.length;
+  if(!n){box.innerHTML='<div class="empty-note">Table is empty. Lead any tile.</div>'}
+  else{
+    const {u,per,rows,W,H,gap}=layoutChain(),rowH=u+gap*3,top0=8+(H-rows*rowH)/2+gap;
+    R.chain.forEach((t,i)=>{
+      const row=Math.floor(i/per),col=i%per,rtl=row%2===1,cnt=Math.min(per,n-row*per);
+      const rowW=cnt*(2*u+gap)-gap,left0=8+(W-(Math.min(per,n)*(2*u+gap)-gap))/2;
+      const c=rtl?(Math.min(per,n)-1-col):col;
+      const el=tileEl(rtl?t[1]:t[0],rtl?t[0]:t[1],'h',u,i===R.fresh?'new':'');
+      el.style.left=(left0+c*(2*u+gap))+'px';el.style.top=(top0+row*rowH)+'px';el.dataset.i=i;
+      box.appendChild(el);
+    });
+  }
+  renderEnds();renderHand();hud();
+}
+function renderEnds(){
+  document.querySelectorAll('.end').forEach(e=>e.remove());
+  if(!selected||!R.chain.length)return;
+  const opts=fits(selected.t);if(opts.length<2)return;
+  const box=$('#chain'),first=box.querySelector('.tile[data-i="0"]'),last=box.querySelector(`.tile[data-i="${R.chain.length-1}"]`);
+  for(const [side,el] of [['L',first],['R',last]]){
+    const e=document.createElement('div');e.className='end';
+    e.style.left=(el.offsetLeft-4)+'px';e.style.top=(el.offsetTop-4)+'px';e.style.width=(el.offsetWidth+8)+'px';e.style.height=(el.offsetHeight+8)+'px';
+    e.onclick=()=>playerPlay(selected.i,side);box.appendChild(e);
+  }
+}
+function renderHand(){
+  const h=$('#hand'),hand=R.hands[0],W=h.clientWidth||340,n=hand.length;
+  let u=Math.min(30,Math.floor((W-6*(n-1))/n));
+  if(u<20){const per=Math.ceil(n/2);u=Math.min(26,Math.floor((W-6*(per-1))/per))}
+  h.style.setProperty('--hu',u+'px');h.innerHTML='';
+  hand.forEach((t,i)=>{
+    const can=R.turn===0&&!R.over&&!busy&&fits(t).length>0;
+    const el=tileEl(t[0],t[1],'v',u,(can?'play':R.turn===0?'dead':'')+(selected&&selected.i===i?' sel':'')+(t.fresh?' new':''));
+    t.fresh=false;
+    el.onclick=()=>tapHand(i);h.appendChild(el);
+  });
+}
+function hud(){
+  $('#sc0').textContent=M.score[0];$('#sc1').textContent=M.score[1];
+  $('#yard').textContent=`${R.yard.length} in yard`;
+  $('#bothand').innerHTML=R.hands[1].map(()=>'<span class="minitile"></span>').join('');
+  $('#round').textContent='Round '+M.round;
+  $('#who').textContent=R.over?'Round over':R.turn===0?'Your turn':"Bot's turn";
+  document.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-pressed',b.dataset.bot===BOT));
+}
+function say(t){$('#msg').innerHTML=t}
+function acts(list){const a=$('#acts');a.innerHTML='';list.forEach(([l,fn,c])=>{const b=document.createElement('button');b.className='tool'+(c?' '+c:'');b.textContent=l;b.onclick=fn;a.appendChild(b)})}
+addEventListener('resize',()=>{if(R)render()});
+
+// ---------- player ----------
+function playerTurn(){
+  R.turn=0;selected=null;busy=false;
+  const can=R.hands[0].some(t=>fits(t).length);
+  if(can){acts([]);if(!$('#msg').textContent)say('Your move.')}
+  else if(R.yard.length){say('Nothing fits. Draw from the boneyard.');acts([['Draw',drawTile,'primary']])}
+  else{say('Nothing fits and the boneyard is empty.');acts([['Pass',()=>{R.missing.add(ends()[0]);R.missing.add(ends()[1]);pass(0)},'primary']])}
+  render();
+}
+function drawTile(){
+  const t=R.yard.pop();t.fresh=true;R.hands[0].push(t);
+  const e=ends();if(e){R.missing.add(e[0]);R.missing.add(e[1])}
+  say(fits(t).length?`Drew the ${t[0]}–${t[1]}. It fits.`:`Drew the ${t[0]}–${t[1]}. Still nothing.`);
+  playerTurn();
+}
+function tapHand(i){
+  if(R.turn!==0||R.over||busy)return;
+  const t=R.hands[0][i],opts=fits(t);
+  if(!opts.length){say(`The ${t[0]}–${t[1]} doesn't fit either end.`);return}
+  if(opts.length===1||(ends()&&ends()[0]===ends()[1])){playerPlay(i,opts[0]);return}
+  if(selected&&selected.i===i){selected=null;render();return}
+  selected={i,t};say('Fits both ends. Tap the glowing end you want.');render();
+}
+function playerPlay(i,side){
+  const t=R.hands[0][i];R.hands[0].splice(i,1);selected=null;
+  place(t,side);R.passes=0;say(`You played the ${t[0]}–${t[1]}.`);acts([]);
+  render();
+  if(!R.hands[0].length)return endRound(0,'domino');
+  busy=true;render();setTimeout(botTurn,650);
+}
+function pass(p){
+  R.passes++;say(p===0?'You passed.':'The bot passed.');
+  if(R.passes>=2)return endRound(null,'blocked');
+  if(p===0){busy=true;render();setTimeout(botTurn,650)}else playerTurn();
+}
+
+// ---------- bot ----------
+function botChoose(){
+  const hand=R.hands[1],options=[];
+  hand.forEach((t,i)=>fits(t).forEach(side=>options.push({i,t,side})));
+  if(!options.length)return null;
+  if(BOT==='easy')return options[Math.floor(Math.random()*options.length)];
+  const e=ends();
+  let best=null;
+  for(const o of options){
+    // what end would be exposed after this play
+    let exposed;
+    if(!e)exposed=[o.t[0],o.t[1]];
+    else if(o.side==='L'){const newL=o.t[1]===e[0]?o.t[0]:o.t[1];exposed=[newL,e[1]]}
+    else{const newR=o.t[0]===e[1]?o.t[1]:o.t[0];exposed=[e[0],newR]}
+    const rest=hand.filter((_,k)=>k!==o.i);
+    let sc=pipsum(o.t)*1.2+(o.t[0]===o.t[1]?4:0);
+    for(const v of exposed){sc+=rest.filter(t=>t[0]===v||t[1]===v).length*2.2;if(R.missing.has(v))sc+=7}
+    sc+=Math.random()*.5;
+    if(!best||sc>best.sc)best={...o,sc};
+  }
+  return best;
+}
+async function botTurn(){
+  if(R.over)return;
+  R.turn=1;busy=true;render();const id=M.id;
+  await sleep(500);if(M.id!==id)return;
+  let drew=0,choice=botChoose();
+  while(!choice&&R.yard.length){R.hands[1].push(R.yard.pop());drew++;hud();await sleep(260);if(M.id!==id)return;choice=botChoose()}
+  if(!choice){say(drew?`The bot drew ${drew} and still had to pass. Your move.`:'The bot passed. Your move.');busy=false;return pass(1)}
+  R.hands[1].splice(choice.i,1);place(choice.t,choice.side);R.passes=0;
+  say(`${drew?`The bot drew ${drew}, then`:'The bot'} played the ${choice.t[0]}–${choice.t[1]}.`);
+  render();
+  if(!R.hands[1].length)return endRound(1,'domino');
+  busy=false;playerTurn();
+}
+
+// ---------- scoring ----------
+function endRound(winner,how){
+  R.over=true;busy=false;acts([]);
+  const s0=handSum(R.hands[0]),s1=handSum(R.hands[1]);
+  let pts=0,line;
+  if(how==='blocked'){
+    if(s0===s1){winner=null;line=`Blocked, and it's a tie at ${s0} pips each. No points.`}
+    else{winner=s0<s1?0:1;pts=winner===0?s1:s0;line=`Blocked. ${winner===0?'Your':"The bot's"} hand is lighter (${Math.min(s0,s1)} vs ${Math.max(s0,s1)}).`}
+  }else{pts=winner===0?s1:s0;line=winner===0?`Domino! The bot is stuck holding ${s1} pips.`:`The bot went out. You were holding ${s0} pips.`}
+  if(winner!=null){M.score[winner]+=pts;M.lastWinner=winner}
+  render();$('#who').textContent='Round over';
+  const done=M.score[0]>=TARGET||M.score[1]>=TARGET;
+  if(done){
+    const won=M.score[0]>M.score[1];REC[BOT+(won?'W':'L')]=(REC[BOT+(won?'W':'L')]||0)+1;store.set('dm-record',REC);
+    setTimeout(()=>{showOverlay(`<div class="stamp ${won?'good':''}">${won?'YOU WIN':'BOT WINS'}</div>
+      <p>${line}</p><p class="stats">${M.score[0]} – ${M.score[1]}</p><p>${RECORD_LINE()}</p>
+      <div class="btns"><button class="tool primary" id="again">New match</button></div>`);$('#again').onclick=newMatch},700);
+  }else{
+    say(line+(winner!=null?` <b>+${pts}</b> to ${winner===0?'you':'the bot'}.`:''));
+    acts([['Next round',()=>{say('');newRound()},'primary']]);
+  }
+}
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{if(b.dataset.bot===BOT)return;BOT=b.dataset.bot;store.set('dm-bot',BOT);newMatch()});
+newMatch();
+
+</script>
+</body>
+</html>

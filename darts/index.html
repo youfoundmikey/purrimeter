@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Darts · Arkade</title>
+<meta name="description" content="301 darts against a bot. Time your aim, hit your checkout.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%231f1b16'/%3E%3Ccircle cx='20' cy='20' r='13' fill='%23fbf6ea'/%3E%3Ccircle cx='20' cy='20' r='8' fill='%23d9452b'/%3E%3Ccircle cx='20' cy='20' r='3' fill='%231f1b16'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b;--yes:#5f9e4c;--no:#d9452b;
+  --c1:#e07e57;--c2:#7fb6a8;--c3:#e8b04b;--c4:#8fb3dc}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{flex:none;height:8px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{flex:1;min-height:0;width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(24px,7.6vw,38px);letter-spacing:.04em;margin:0;line-height:1;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0;color:var(--muted);font-style:italic}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.modes{display:flex;justify-content:center;gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;
+  padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700;gap:8px}
+.stat{min-width:70px}
+.stat:last-child{text-align:right}
+.stat .k{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:21px;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center;position:relative}
+.tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:10px;
+  padding:10px 6px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.tool.primary{background:var(--ink);color:var(--card)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.tool .badge{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--card);font-size:13px}
+.tool.primary .badge{background:var(--card);color:var(--ink)}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--ink);padding:10px 12px}
+.turn{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.turn .who{color:var(--ink)}
+.msg{font-weight:700;font-size:15px;line-height:1.3;margin:4px 0 0;min-height:1.3em}
+.acts{display:flex;gap:8px;margin-top:8px}
+.acts:empty{display:none}
+.acts .tool{flex:1}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:22px 18px 18px;max-width:380px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink);max-height:calc(100dvh - 32px);overflow:auto}
+.card h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:24px;letter-spacing:.03em}
+.card p{margin:12px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card .btns .tool{padding:10px 16px}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+.stamp.good{color:var(--yes);border-color:var(--yes)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+.dots3::after{content:"";animation:dots 1s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+/* ===== Darts ===== */
+.scores{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:0;border:3px solid var(--ink);border-radius:12px;
+  box-shadow:4px 4px 0 var(--ink);background:var(--card);overflow:hidden}
+.sc{padding:6px 12px;display:flex;flex-direction:column;gap:2px;transition:background .2s}
+.sc:last-child{text-align:right;align-items:flex-end}
+.sc .k{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.sc .v{font-family:"Archivo Black",Impact,sans-serif;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.sc.on{background:#fff1c7}
+.sc.on .k{color:var(--ink)}
+.sc .pips{display:flex;gap:4px;height:10px}
+.sc .pip{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink)}
+.sc .pip.used{background:var(--ink)}
+.vs{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8px;border-left:3px solid var(--ink);border-right:3px solid var(--ink);
+  font-family:"Archivo Black",Impact,sans-serif;font-size:18px}
+.vs small{font-family:"Space Grotesk",sans-serif;font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.throws{display:flex;justify-content:center;gap:6px;min-height:28px}
+.chip{border:2px solid var(--ink);border-radius:8px;padding:2px 10px;font-weight:700;font-size:15px;background:var(--card);min-width:52px;text-align:center}
+.chip.empty{opacity:.25}
+.chip.hot{background:#fff1c7}
+.chip.bust{background:var(--no);color:#fff}
+#dboard{width:min(100cqw,100cqh);height:min(100cqw,100cqh);overflow:visible;touch-action:none}
+.pop{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-family:"Archivo Black",Impact,sans-serif;font-size:44px;
+  color:var(--card);-webkit-text-stroke:2px var(--ink);paint-order:stroke;pointer-events:none;opacity:0}
+.pop.go{animation:popup 1s ease-out}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+.throwbtn{font-size:18px;padding:14px 8px;letter-spacing:.02em}
+
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>DARTS</h1><p class="tag">301 down to zero. steady hands.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
+  <nav class="modes" aria-label="Bot difficulty">
+    <button class="pill" data-bot="easy">Easy bot</button>
+    <button class="pill" data-bot="hard">Hard bot</button>
+  </nav>
+  <section class="scores">
+    <div class="sc" id="sc0"><span class="k">You</span><span class="v" id="s0">301</span><span class="pips" id="p0"></span></div>
+    <div class="vs"><small id="lvl">HARD</small>VS</div>
+    <div class="sc" id="sc1"><span class="k">Bot</span><span class="v" id="s1">301</span><span class="pips" id="p1"></span></div>
+  </section>
+  <div class="throws" id="throws"></div>
+  <div class="stage" id="stage">
+    <svg id="dboard" viewBox="-128 -128 256 256" aria-label="Dartboard"></svg>
+    <div class="pop" id="pop"></div>
+  </div>
+  <button class="tool primary throwbtn" id="throw">Tap to lock aim ↔</button>
+
+</main>
+<template id="howto"><ul>
+  <li>You and the bot both start on <b>301</b>. Each turn is 3 darts, and everything you hit comes off your score.</li>
+  <li><b>Aiming:</b> a line sweeps left and right, so tap to lock it. Then a second line sweeps up and down, so tap to throw. Your dart lands where they cross.</li>
+  <li>The outer ring counts <b>double</b>, the inner ring <b>triple</b>. The green bull is 25 and the red bullseye is 50.</li>
+  <li>Hit exactly zero to win. Go below zero and it's a <b>bust</b>: your score snaps back to where the turn started.</li>
+  <li>Tap anywhere on the board or the big button, whichever's easier.</li>
+</ul>
+</template>
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+function recordLine(){return typeof RECORD_LINE==='function'?RECORD_LINE():''}
+$('#infoBtn').onclick=()=>{
+  const rec=recordLine();
+  showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec}</p>`:''}<h3>How to play</h3>${$('#howto').innerHTML}</div>
+    <div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+  $('#infoClose').onclick=hideOverlay;
+};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+
+/* ===== Darts ===== */
+const ORDER=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+// ring radii (board radius 100 = outer edge of the double ring); widened a touch from real proportions so it's playable on a phone
+const R={bull:6,obull:12,tIn:54,tOut:62,dIn:90,dOut:100};
+const COL={ink:'#1f1b16',cream:'#fbf6ea',red:'#d9452b',green:'#5f9e4c',wire:'#9a8f7e'};
+const svg=$('#dboard'),NS='http://www.w3.org/2000/svg';
+let BOT=store.get('dt-bot','hard'),REC=store.get('dt-record',{});
+let G=null,sweep=null,busy=false;
+const RECORD_LINE=()=>`Record vs ${BOT} bot: ${REC[BOT+'W']||0}–${REC[BOT+'L']||0}`;
+
+// ---------- board ----------
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e}
+function wedge(r0,r1,a0,a1){ // angles in degrees, 0 = up, clockwise
+  const p=(r,a)=>{const t=(a-90)*Math.PI/180;return [r*Math.cos(t),r*Math.sin(t)]};
+  const [x0,y0]=p(r1,a0),[x1,y1]=p(r1,a1),[x2,y2]=p(r0,a1),[x3,y3]=p(r0,a0);
+  return `M${x0} ${y0}A${r1} ${r1} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`;
+}
+let dartsLayer,aimLayer,vLine,hLine,dot;
+function drawBoard(){
+  svg.innerHTML='';
+  el('circle',{cx:5,cy:6,r:126,fill:COL.ink,opacity:.9});
+  el('circle',{cx:0,cy:0,r:126,fill:COL.ink});
+  ORDER.forEach((n,i)=>{
+    const a0=i*18-9,a1=i*18+9,dark=i%2===0;
+    el('path',{d:wedge(R.obull,R.tIn,a0,a1),fill:dark?COL.ink:COL.cream,stroke:COL.wire,'stroke-width':.6});
+    el('path',{d:wedge(R.tOut,R.dIn,a0,a1),fill:dark?COL.ink:COL.cream,stroke:COL.wire,'stroke-width':.6});
+    el('path',{d:wedge(R.tIn,R.tOut,a0,a1),fill:dark?COL.red:COL.green,stroke:COL.wire,'stroke-width':.6});
+    el('path',{d:wedge(R.dIn,R.dOut,a0,a1),fill:dark?COL.red:COL.green,stroke:COL.wire,'stroke-width':.6});
+    const t=(i*18-90)*Math.PI/180,tx=113*Math.cos(t),ty=113*Math.sin(t);
+    const txt=el('text',{x:tx,y:ty+5.5,'text-anchor':'middle','font-family':'Archivo Black,Impact,sans-serif','font-size':15,fill:COL.cream});
+    txt.textContent=n;
+  });
+  el('circle',{cx:0,cy:0,r:R.obull,fill:COL.green,stroke:COL.wire,'stroke-width':.6});
+  el('circle',{cx:0,cy:0,r:R.bull,fill:COL.red,stroke:COL.wire,'stroke-width':.6});
+  dartsLayer=el('g',{});
+  aimLayer=el('g',{opacity:0});
+  vLine=el('line',{x1:0,y1:-124,x2:0,y2:124,stroke:'#fff1c7','stroke-width':3.2,'stroke-dasharray':'7 5'},aimLayer);
+  hLine=el('line',{x1:-124,y1:0,x2:124,y2:0,stroke:'#fff1c7','stroke-width':3.2,'stroke-dasharray':'7 5',opacity:0},aimLayer);
+  dot=el('circle',{cx:0,cy:0,r:6,fill:'none',stroke:'#fff1c7','stroke-width':3,opacity:0},aimLayer);
+}
+function dartMarker(x,y,mine){
+  const g=el('g',{transform:`translate(${x} ${y})`},dartsLayer);
+  const c=mine?COL.red:'#5a8fd6';
+  el('line',{x1:0,y1:0,x2:13,y2:-17,stroke:COL.ink,'stroke-width':4,'stroke-linecap':'round'},g);
+  el('path',{d:'M11 -14 L22 -20 L18 -26 L20 -31 L13 -22 Z',fill:c,stroke:COL.ink,'stroke-width':1.6,'stroke-linejoin':'round'},g);
+  el('circle',{cx:0,cy:0,r:3.4,fill:c,stroke:COL.ink,'stroke-width':1.6},g);
+  return g;
+}
+
+// ---------- scoring ----------
+function scoreAt(x,y){ // x,y in board units (radius 100 = double outer)
+  const r=Math.hypot(x,y);
+  if(r>R.dOut)return {pts:0,label:'MISS',mult:0};
+  if(r<=R.bull)return {pts:50,label:'BULL',mult:2};
+  if(r<=R.obull)return {pts:25,label:'25',mult:1};
+  let ang=Math.atan2(x,-y)*180/Math.PI;if(ang<0)ang+=360;
+  const n=ORDER[Math.floor(((ang+9)%360)/18)];
+  if(r>=R.dIn)return {pts:2*n,label:'D'+n,mult:2};
+  if(r>=R.tIn&&r<=R.tOut)return {pts:3*n,label:'T'+n,mult:3};
+  return {pts:n,label:String(n),mult:1};
+}
+function targetXY(kind,n){ // centre of a scoring area
+  if(kind==='bull')return [0,0];
+  if(kind==='25')return [0,-(R.bull+R.obull)/2];
+  const i=ORDER.indexOf(n),t=(i*18-90)*Math.PI/180;
+  const r=kind==='T'?(R.tIn+R.tOut)/2:kind==='D'?(R.dIn+R.dOut)/2:(R.tOut+R.dIn)/2;
+  return [r*Math.cos(t),r*Math.sin(t)];
+}
+
+// ---------- game ----------
+function newGame(){
+  hideOverlay();
+  G={id:Math.random(),s:[301,301],turn:0,dart:0,start:301,throws:[],busted:false};
+  drawBoard();hud();playerTurn();
+}
+function hud(){
+  for(const p of [0,1]){
+    $('#s'+p).textContent=G.s[p];
+    $('#sc'+p).classList.toggle('on',G.turn===p);
+    $('#p'+p).innerHTML=[0,1,2].map(k=>`<span class="pip ${G.turn===p&&k<G.dart?'used':''}"></span>`).join('');
+  }
+  $('#lvl').textContent=BOT.toUpperCase();
+  $('#throws').innerHTML=[0,1,2].map(k=>{const t=G.throws[k];
+    return t?`<span class="chip ${t.bust?'bust':t.pts>=40?'hot':''}">${t.label}</span>`:`<span class="chip empty">–</span>`}).join('');
+  document.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-pressed',b.dataset.bot===BOT));
+}
+function popup(text){const p=$('#pop');p.textContent=text;p.classList.remove('go');void p.offsetWidth;p.classList.add('go')}
+
+// ---------- player aiming: two timing sweeps ----------
+const tri=(t,period)=>{const ph=(t%period)/period;return ph<.5?-1+4*ph:3-4*ph}; // -1..1..-1
+function playerTurn(){
+  G.turn=0;G.dart=0;G.start=G.s[0];G.throws=[];dartsLayer.innerHTML='';hud();
+  startSweep();
+}
+function startSweep(){
+  sweep={phase:'x',x:0,y:0,t0:performance.now(),off:Math.random()*2000};
+  aimLayer.setAttribute('opacity',1);hLine.setAttribute('opacity',0);dot.setAttribute('opacity',0);
+  $('#throw').textContent='Tap to lock aim ↔';$('#throw').disabled=false;
+  const mine=sweep;requestAnimationFrame(function loop(now){if(sweep!==mine)return;tick(now);requestAnimationFrame(loop)});
+}
+function tick(now){
+  const t=now-sweep.t0+sweep.off,A=112;
+  if(sweep.phase==='x'){sweep.x=A*tri(t,2300);vLine.setAttribute('x1',sweep.x);vLine.setAttribute('x2',sweep.x)}
+  if(sweep.phase==='y'){sweep.y=A*tri(t,2000);hLine.setAttribute('y1',sweep.y);hLine.setAttribute('y2',sweep.y);
+    dot.setAttribute('cx',sweep.x);dot.setAttribute('cy',sweep.y)}
+}
+function playerTap(){
+  if(!sweep||busy||G.turn!==0)return;
+  if(sweep.phase==='x'){
+    sweep.phase='y';sweep.t0=performance.now();sweep.off=Math.random()*2000;
+    hLine.setAttribute('opacity',1);dot.setAttribute('opacity',1);
+    $('#throw').textContent='Tap to throw ↕';return;
+  }
+  const x=sweep.x+gauss()*2.2,y=sweep.y+gauss()*2.2,id=G.id;sweep=null;
+  $('#throw').disabled=true;
+  throwDart(x,y,true).then(()=>{if(G.id===id&&G.turn===0&&!G.over){if(G.dart<3)startSweep();else endTurn()}});
+}
+$('#throw').addEventListener('pointerdown',e=>{e.preventDefault();playerTap()});
+$('#stage').addEventListener('pointerdown',e=>{e.preventDefault();playerTap()});
+
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+
+// ---------- throwing ----------
+async function throwDart(x,y,mine){
+  busy=true;aimLayer.setAttribute('opacity',0);const gid=G.id;
+  const m=dartMarker(0,160,mine),t0=performance.now(),dur=320;
+  await new Promise(res=>{(function step(now){
+    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+    const cx=x*e,cy=160+(y-160)*e,sc=2.6-1.6*e;
+    m.setAttribute('transform',`translate(${cx} ${cy}) scale(${sc})`);
+    if(k<1)requestAnimationFrame(step);else res();
+  })(t0)});
+  if(G.id!==gid){busy=false;return}
+  if(navigator.vibrate)navigator.vibrate(12);
+  const p=G.turn,hit=scoreAt(x,y);
+  G.dart++;
+  const left=G.s[p]-hit.pts;
+  if(left<0){
+    G.throws.push({...hit,bust:true});G.s[p]=G.start;popup('BUST');G.dart=3;G.busted=true;
+  }else{
+    G.throws.push(hit);G.s[p]=left;popup(hit.pts?`${hit.label}${hit.mult>1||hit.pts>=25?' · '+hit.pts:''}`:'MISS');
+  }
+  hud();busy=false;
+  if(G.s[p]===0){G.over=true;await sleep(700);finish(p===0);}
+}
+async function endTurn(){
+  aimLayer.setAttribute('opacity',0);$('#throw').disabled=true;
+  const total=G.throws.reduce((a,t)=>a+(t.bust?0:t.pts),0);
+  $('#throw').textContent=G.busted?'Bust. Bot is up':`${total} scored. Bot is up`;G.busted=false;
+  const id=G.id;await sleep(1100);if(G.id===id)botTurn();
+}
+
+// ---------- bot ----------
+function botTarget(rem){
+  if(rem>60)return ['T',20];
+  if(rem<=20)return ['S',rem];
+  if(rem===25)return ['25'];
+  if(rem===50)return ['bull'];
+  if(rem<=40&&rem%2===0)return ['D',rem/2];
+  if(rem%3===0&&rem<=60)return ['T',rem/3];
+  // set up a finish: leave something 2..20
+  for(let n=20;n>=1;n--){const l=rem-n;if(l>=2&&l<=20)return ['S',n]}
+  for(let n=20;n>=1;n--){const l=rem-3*n;if(l>=2&&l<=20)return ['T',n]}
+  return ['T',20];
+}
+async function botTurn(){
+  G.turn=1;G.dart=0;G.start=G.s[1];G.throws=[];dartsLayer.innerHTML='';hud();const id=G.id;
+  $('#throw').textContent="Bot's turn";$('#throw').disabled=true;
+  const sigma=BOT==='hard'?10:17;
+  for(let d=0;d<3&&!G.over;d++){
+    const [kind,n]=botTarget(G.s[1]);let [tx,ty]=targetXY(kind==='S'?'S':kind,n);
+    // show the bot's aim sliding in
+    aimLayer.setAttribute('opacity',1);hLine.setAttribute('opacity',1);dot.setAttribute('opacity',1);
+    const sx=(Math.random()-.5)*160,sy=(Math.random()-.5)*160,t0=performance.now();
+    await new Promise(res=>{(function step(now){const k=Math.min(1,(now-t0)/520),e=k*k*(3-2*k);
+      const ax=sx+(tx-sx)*e,ay=sy+(ty-sy)*e;
+      vLine.setAttribute('x1',ax);vLine.setAttribute('x2',ax);hLine.setAttribute('y1',ay);hLine.setAttribute('y2',ay);
+      dot.setAttribute('cx',ax);dot.setAttribute('cy',ay);if(k<1)requestAnimationFrame(step);else res()})(t0)});
+    await sleep(180);if(G.id!==id)return;
+    await throwDart(tx+gauss()*sigma,ty+gauss()*sigma,false);
+    await sleep(650);if(G.id!==id)return;
+    if(G.dart>=3)break;
+  }
+  if(G.over)return;
+  const total=G.throws.reduce((a,t)=>a+(t.bust?0:t.pts),0);
+  $('#throw').textContent=G.busted?'Bot busted. Your throw':`Bot scored ${total}. Your throw`;G.busted=false;
+  await sleep(1100);if(G.id===id)playerTurn();
+}
+
+// ---------- end ----------
+function finish(won){
+  REC[BOT+(won?'W':'L')]=(REC[BOT+(won?'W':'L')]||0)+1;store.set('dt-record',REC);
+  sweep=null;$('#throw').textContent=won?'Checked out. You win':'Bot checked out';
+  showOverlay(`<div class="stamp ${won?'good':''}">${won?'CHECKOUT':'BOT WINS'}</div>
+    <p>${won?`Finished on ${G.throws[G.throws.length-1].label}. Clinical.`:`The bot closed it on ${G.throws[G.throws.length-1].label}. You had ${G.s[0]} left.`}</p>
+    <p class="stats">${RECORD_LINE()}</p>
+    <div class="btns"><button class="tool primary" id="again">Rematch</button></div>`);
+  $('#again').onclick=newGame;
+}
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{if(b.dataset.bot===BOT)return;BOT=b.dataset.bot;store.set('dt-bot',BOT);newGame()});
+newGame();
+
+</script>
+</body>
+</html>
