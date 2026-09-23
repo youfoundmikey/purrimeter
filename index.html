@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Arkade</title>
+<meta name="description" content="Four puzzle games, one arcade. Purrimeter, Fillmore, Block Party and Face Off.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%231f1b16'/%3E%3Crect x='6' y='6' width='13' height='13' rx='2' fill='%23e8b04b'/%3E%3Crect x='21' y='6' width='13' height='13' rx='2' fill='%237fb6a8'/%3E%3Crect x='6' y='21' width='13' height='13' rx='2' fill='%23e07e57'/%3E%3Crect x='21' y='21' width='13' height='13' rx='2' fill='%238fb3dc'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{height:10px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{max-width:640px;margin:0 auto;padding:26px 16px 40px;display:flex;flex-direction:column;gap:20px}
+header{text-align:center}
+h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(54px,17vw,84px);letter-spacing:.05em;margin:0;line-height:.95}
+h1 span{display:inline-block;animation:hop 2.6s ease-in-out infinite}
+h1 span:nth-child(2){animation-delay:.12s}h1 span:nth-child(3){animation-delay:.24s}h1 span:nth-child(4){animation-delay:.36s}
+h1 span:nth-child(5){animation-delay:.48s}h1 span:nth-child(6){animation-delay:.6s}
+@keyframes hop{0%,70%,100%{transform:none}78%{transform:translateY(-8px)}86%{transform:none}}
+@media (prefers-reduced-motion:reduce){h1 span{animation:none}}
+.tag{margin:8px 0 0;color:var(--muted);font-style:italic;font-size:17px}
+.games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.game{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);background:var(--card);border:3px solid var(--ink);
+  border-radius:14px;box-shadow:5px 5px 0 var(--ink);overflow:hidden;transition:transform .12s,box-shadow .12s}
+.game:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.game:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.art{aspect-ratio:1.25;border-bottom:3px solid var(--ink);display:flex;align-items:center;justify-content:center}
+.art svg{width:74%;height:74%;overflow:visible}
+.game:hover .art svg{animation:tilt .5s ease-in-out}
+@keyframes tilt{30%{transform:rotate(-4deg) scale(1.04)}70%{transform:rotate(3deg) scale(1.04)}}
+.info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.name{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(17px,4.8vw,22px);letter-spacing:.03em;line-height:1.05}
+.pitch{font-size:13.5px;color:var(--muted);line-height:1.35}
+.stat{margin-top:auto;padding-top:6px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.stat.fresh{color:var(--accent)}
+.note{text-align:center;color:var(--muted);font-size:13px;margin:0}
+footer{text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header>
+    <h1 aria-label="Arkade"><span>A</span><span>R</span><span>K</span><span>A</span><span>D</span><span>E</span></h1>
+    <p class="tag">four games. zero ads. pick your poison.</p>
+  </header>
+
+  <section class="games">
+    <a class="game" href="purrimeter/">
+      <div class="art" style="background:#f2e3c1">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <rect x="4" y="4" width="112" height="112" rx="8" fill="#1f1b16"/>
+          <g>
+            <rect x="8" y="8" width="33" height="33" fill="#9fc27a"/><rect x="44" y="8" width="33" height="33" fill="#f0a3a8"/><rect x="80" y="8" width="33" height="33" fill="#c9b3d9"/>
+            <rect x="8" y="44" width="33" height="33" fill="#9fc27a"/><rect x="44" y="44" width="33" height="33" fill="#e8b04b"/><rect x="80" y="44" width="33" height="33" fill="#c9b3d9"/>
+            <rect x="8" y="80" width="33" height="33" fill="#7fb6a8"/><rect x="44" y="80" width="33" height="33" fill="#e8b04b"/><rect x="80" y="80" width="33" height="33" fill="#a7c4e2"/>
+          </g>
+          <path d="M18 34 L18 16 L23 21 Q24.5 20 26 21 L31 16 L31 34 Q24.5 37 18 34Z" fill="#1f1b16"/>
+          <path d="M90 106 L90 88 L95 93 Q96.5 92 98 93 L103 88 L103 106 Q96.5 109 90 106Z" fill="#1f1b16"/>
+          <path d="M53 55 L68 70 M68 55 L53 70" stroke="#1f1b16" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="info">
+        <span class="name">PURRIMETER</span>
+        <span class="pitch">One cat per row, column and color. No touching.</span>
+        <span class="stat" id="st-purr"></span>
+      </div>
+    </a>
+
+    <a class="game" href="fillmore/">
+      <div class="art" style="background:#dbe8e2">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <g fill="#1f1b16"><rect x="4" y="4" width="76" height="40"/><rect x="4" y="40" width="112" height="76"/></g>
+          <g fill="#7fb6a8">
+            <rect x="8" y="8" width="33" height="33"/><rect x="44" y="8" width="33" height="33"/>
+            <rect x="8" y="44" width="33" height="33"/><rect x="44" y="44" width="33" height="33"/><rect x="80" y="44" width="33" height="33"/>
+            <rect x="8" y="80" width="33" height="33"/><rect x="44" y="80" width="33" height="33"/>
+          </g>
+          <rect x="80" y="80" width="33" height="33" fill="#fbf6ea"/>
+          <path d="M24.5 96.5 V24.5 H60.5 V60.5 H96.5" fill="none" stroke="#1f1b16" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M60.5 60.5" /><circle cx="24.5" cy="96.5" r="10" fill="#1f1b16"/><circle cx="96.5" cy="60.5" r="3.4" fill="#fbf6ea"/>
+        </svg>
+      </div>
+      <div class="info">
+        <span class="name">FILLMORE</span>
+        <span class="pitch">One line through every block. No lifting.</span>
+        <span class="stat" id="st-fill"></span>
+      </div>
+    </a>
+
+    <a class="game" href="blockparty/">
+      <div class="art" style="background:#f6dccf">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <rect x="4" y="4" width="112" height="112" rx="8" fill="#1f1b16"/>
+          <g fill="#fbf6ea">
+            <rect x="8" y="8" width="24.25" height="24.25"/><rect x="35.25" y="8" width="24.25" height="24.25"/><rect x="62.5" y="8" width="24.25" height="24.25"/><rect x="89.75" y="8" width="22.25" height="24.25"/>
+            <rect x="8" y="35.25" width="24.25" height="24.25"/><rect x="35.25" y="35.25" width="24.25" height="24.25"/>
+          </g>
+          <g fill="#8fb3dc"><rect x="62.5" y="35.25" width="24.25" height="24.25"/><rect x="89.75" y="35.25" width="22.25" height="24.25"/></g>
+          <g fill="#e8b04b"><rect x="8" y="62.5" width="24.25" height="24.25"/><rect x="35.25" y="62.5" width="24.25" height="24.25"/><rect x="62.5" y="62.5" width="24.25" height="24.25"/></g>
+          <rect x="89.75" y="62.5" width="22.25" height="24.25" fill="#fbf6ea"/>
+          <g fill="#e07e57"><rect x="8" y="89.75" width="24.25" height="22.25"/><rect x="35.25" y="89.75" width="24.25" height="22.25"/></g>
+          <g fill="#8fbf62"><rect x="62.5" y="89.75" width="24.25" height="22.25"/><rect x="89.75" y="89.75" width="22.25" height="22.25"/></g>
+          <g transform="translate(86 -14) rotate(8)"><rect x="0" y="0" width="22" height="22" rx="2" fill="#b89ad4" stroke="#1f1b16" stroke-width="3"/><rect x="0" y="24" width="22" height="22" rx="2" fill="#b89ad4" stroke="#1f1b16" stroke-width="3"/></g>
+        </svg>
+      </div>
+      <div class="info">
+        <span class="name">BLOCK PARTY</span>
+        <span class="pitch">Drop blocks, clear lines, don't get boxed in.</span>
+        <span class="stat" id="st-block"></span>
+      </div>
+    </a>
+
+    <a class="game" href="faceoff/">
+      <div class="art" style="background:#e5e0f0">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <g transform="translate(6 18) rotate(-7 26 36)"><rect width="52" height="66" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/>
+            <rect x="0" y="0" width="52" height="66" rx="7" fill="url(#bk)"/></g>
+          <defs><pattern id="bk" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#e8b04b"/><rect width="5" height="10" fill="#e07e57"/></pattern></defs>
+          <g transform="translate(6 18) rotate(-7 26 36)"><rect width="52" height="66" rx="7" fill="none" stroke="#1f1b16" stroke-width="3.5"/><text x="26" y="44" text-anchor="middle" font-family="Archivo Black,Impact,sans-serif" font-size="30" fill="#fbf6ea" stroke="#1f1b16" stroke-width="1.5">?</text></g>
+          <g transform="translate(58 12) rotate(6 28 40)">
+            <rect width="56" height="76" rx="7" fill="#fff" stroke="#1f1b16" stroke-width="3.5"/>
+            <path d="M8 76 Q9 60 28 58 Q47 60 48 76 Z" fill="#7fb6a8" stroke="#1f1b16" stroke-width="2.5"/>
+            <ellipse cx="28" cy="36" rx="14" ry="15" fill="#eab58f" stroke="#1f1b16" stroke-width="2.5"/>
+            <path d="M14 34 Q13 19 28 19 Q43 19 42 34 Q40 27 35 25 Q28 28 21 25 Q16 27 14 34Z" fill="#c9582e" stroke="#1f1b16" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="23" cy="37" r="2.6" fill="#1f1b16"/><circle cx="33" cy="37" r="2.6" fill="#1f1b16"/>
+            <path d="M23 44 Q28 47.5 33 44" stroke="#1f1b16" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <rect x="0" y="62" width="56" height="14" fill="#1f1b16"/><rect x="0" y="62" width="56" height="14" rx="0" fill="#1f1b16"/>
+          </g>
+        </svg>
+      </div>
+      <div class="info">
+        <span class="name">FACE OFF</span>
+        <span class="pitch">Guess who against a bot that plays to win.</span>
+        <span class="stat" id="st-face"></span>
+      </div>
+    </a>
+  </section>
+
+  <p class="note">Progress, best scores and records save on this device.</p>
+  <footer>Arkade</footer>
+</main>
+
+<script>
+const get=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const today=(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})();
+const fmt=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function set(id,text,fresh){const el=document.getElementById(id);el.textContent=text;el.classList.toggle('fresh',!!fresh)}
+
+const pb=get('purr-bank',{});
+set('st-purr',pb.dailyDone===today?'Daily done ✓':'New daily waiting',pb.dailyDone!==today);
+
+const fb=get('fillmore-bank',{});
+set('st-fill',fb.dailyDone===today?'Daily done ✓':'New daily waiting',fb.dailyDone!==today);
+
+const bc=get('bp-best-classic',0),bh=get('bp-best-hard',0),best=Math.max(bc,bh);
+set('st-block',best?`Best ${best.toLocaleString()}`:'No score yet',!best);
+
+const rec=get('fo-record',{}),w=(rec.hardW||0)+(rec.easyW||0),l=(rec.hardL||0)+(rec.easyL||0);
+set('st-face',w+l?`Record ${w}–${l}`:'The bot is waiting',!(w+l));
+</script>
+</body>
+</html>

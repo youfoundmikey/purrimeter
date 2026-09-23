@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Face Off · Arkade</title>
+<meta name="description" content="A guess-who duel against a bot. Ask smart, flip fast, name the face.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23e07e57'/%3E%3Ccircle cx='20' cy='21' r='11' fill='%23fbf6ea' stroke='%231f1b16' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='20' r='2' fill='%231f1b16'/%3E%3Ccircle cx='24' cy='20' r='2' fill='%231f1b16'/%3E%3Cpath d='M16 25 Q20 28 24 25' stroke='%231f1b16' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b;--yes:#5f9e4c;--no:#d9452b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{height:10px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{max-width:640px;margin:0 auto;padding:18px 16px 0;display:flex;flex-direction:column;gap:14px}
+header{text-align:center}
+h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(34px,10vw,52px);letter-spacing:.04em;margin:4px 0 0;line-height:1}
+.tag{margin:6px 0 0;color:var(--muted);font-style:italic}
+.modes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);
+  border-radius:999px;padding:6px 14px;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700;gap:8px}
+.stat{min-width:78px}
+.stat:last-child{text-align:right}
+.stat .k{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:22px;font-variant-numeric:tabular-nums;line-height:1.1}
+.me{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:4px 10px 4px 4px;box-shadow:3px 3px 0 var(--ink)}
+.me svg{width:40px;height:40px;border-radius:8px;background:#fff;border:2px solid var(--ink)}
+.me .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block}
+.me .n{font-weight:700}
+.me.empty{opacity:.5}
+
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (min-width:600px){.grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.fc{position:relative;aspect-ratio:.82;perspective:700px;cursor:pointer;border:0;padding:0;background:none;font:inherit}
+.fc .in{position:absolute;inset:0;transition:transform .42s cubic-bezier(.4,1.4,.5,1);transform-style:preserve-3d}
+.fc.down .in{transform:rotateY(180deg)}
+.fc .face,.fc .back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border:2.5px solid var(--ink);border-radius:10px;overflow:hidden;box-shadow:3px 3px 0 var(--ink);background:#fff;display:flex;flex-direction:column}
+.fc .face svg{flex:1;min-height:0;width:100%}
+.fc .nm{background:var(--ink);color:var(--card);font-weight:700;font-size:13px;text-align:center;padding:3px 2px 4px;letter-spacing:.02em}
+.fc .back{transform:rotateY(180deg);background:repeating-linear-gradient(45deg,#e07e57 0 8px,#e8b04b 8px 16px);align-items:center;justify-content:center}
+.fc .back span{font-family:"Archivo Black",Impact,sans-serif;font-size:34px;color:var(--card);-webkit-text-stroke:2px var(--ink)}
+.fc.pick .face{outline:4px solid var(--accent);outline-offset:2px}
+.guessing .fc:not(.down) .face{animation:wiggle 1.2s ease-in-out infinite}
+@keyframes wiggle{25%{transform:rotate(-1.5deg)}75%{transform:rotate(1.5deg)}}
+.fc.reveal .face{outline:4px solid var(--yes);outline-offset:2px}
+
+.bar{position:sticky;bottom:0;z-index:5;margin:0 -16px;padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,var(--bg) 18px)}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--ink);padding:12px 14px}
+.turn{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.turn .who{color:var(--ink)}
+.msg{font-weight:700;font-size:17px;margin:6px 0 0;line-height:1.35;min-height:1.35em}
+.msg .ans{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;padding:1px 10px;border-radius:6px;color:#fff;margin-left:4px;animation:stampin .35s cubic-bezier(.2,1.4,.4,1)}
+.ans.yes{background:var(--yes)}.ans.no{background:var(--no)}
+@keyframes stampin{from{transform:scale(2);opacity:0}to{transform:none;opacity:1}}
+.dots3::after{content:"";animation:dots 1s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.acts{display:flex;gap:8px;margin-top:10px}
+.acts:empty{display:none}
+.tool{flex:1;font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);
+  border-radius:10px;padding:10px 6px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.tool.primary{background:var(--ink);color:var(--card)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+details{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:10px 14px}
+summary{font-weight:700;cursor:pointer}
+details ul,details ol{padding-left:18px;margin:8px 0 0;line-height:1.5}
+.log li{margin:2px 0}
+.log .b{color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding-bottom:8px}
+
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:22px 18px 18px;max-width:420px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink);max-height:88vh;overflow:auto}
+.card h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:24px;letter-spacing:.03em}
+.qgroup{margin-top:14px;text-align:left}
+.qgroup .k{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.qs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.q{font:inherit;font-weight:700;font-size:14px;border:2px solid var(--ink);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
+.q:hover{background:#fff4d6}
+.q:disabled{opacity:.35;text-decoration:line-through;cursor:default;background:transparent}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);
+  animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+.stamp.good{color:var(--yes);border-color:var(--yes)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.card p{margin:12px 0 0;line-height:1.45}
+.duo{display:flex;justify-content:center;gap:14px;margin-top:16px}
+.duo figure{margin:0;width:96px}
+.duo figcaption{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px}
+.duo .fc{width:96px;display:block;cursor:default}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card .btns .tool{flex:0 1 auto;padding:10px 16px}
+.home{align-self:flex-start;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;background:var(--card);box-shadow:2px 2px 0 var(--ink);margin-bottom:-6px}
+.home:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <a class="home" href="../">&larr; Arkade</a>
+  <header>
+    <h1>FACE OFF</h1>
+    <p class="tag">you vs the bot. ask smart. flip fast.</p>
+  </header>
+
+  <nav class="modes" aria-label="Bot difficulty">
+    <button class="pill" data-bot="easy">Easy bot</button>
+    <button class="pill" data-bot="hard">Hard bot</button>
+  </nav>
+
+  <section class="hud">
+    <div class="stat"><span class="k">You</span><span class="v" id="youLeft">24</span></div>
+    <div class="me empty" id="me"><svg viewBox="0 0 100 100"></svg><div><span class="k">You are</span><span class="n" id="meName">—</span></div></div>
+    <div class="stat"><span class="k">Bot</span><span class="v" id="botLeft">24</span></div>
+  </section>
+
+  <div class="grid" id="grid"></div>
+
+  <details>
+    <summary>How to play</summary>
+    <ul>
+      <li>Pick your character. The bot secretly picks one too.</li>
+      <li>On your turn, either <b>ask</b> a yes/no question or <b>guess</b> who the bot has.</li>
+      <li>After an answer, tap cards to flip down anyone it rules out, then end your turn.</li>
+      <li>Wrong guess and you lose on the spot, so be sure.</li>
+      <li>The bot answers honestly and asks about your character on its turn. The counts up top show how many faces each of you has left.</li>
+      <li>Easy bot asks random questions. Hard bot always picks the question that cuts its list closest to half.</li>
+    </ul>
+  </details>
+  <details>
+    <summary>Question log</summary>
+    <ol class="log" id="log"></ol>
+  </details>
+  <footer id="record">Record: 0–0</footer>
+
+  <div class="bar"><div class="panel">
+    <div class="turn"><span class="who" id="who">Setup</span><span id="qcount"></span></div>
+    <p class="msg" id="msg"></p>
+    <div class="acts" id="acts"></div>
+  </div></div>
+</main>
+
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
+  <div class="card" id="card"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+// ---------- the cast ----------
+const SKIN={a:'#f6d2b8',b:'#eab58f',c:'#c98e62',d:'#9b6440',e:'#6e4329'};
+const HAIR={black:'#2a221d',brown:'#6b4226',blond:'#e9c15a',red:'#c9582e',grey:'#d4cfc6'};
+const EYE={blue:'#4f8fd6',brown:'#6b4226',green:'#4f9a5a'};
+const SHIRT=['#e8b04b','#7fb6a8','#e07e57','#8fb3dc','#b89ad4','#dcc94f','#8fbf62','#ec8f98'];
+// name, skin, hair, long, hat, glasses, facial, earrings, eyes
+const RAW=[
+ ['Lena','b','black',1,'',0,'',1,'brown'], ['Marco','c','brown',0,'cap',1,'mustache',0,'brown'],
+ ['Ivy','a','red',1,'',1,'',1,'green'],     ['Otis','d','bald',0,'',0,'beard',0,'brown'],
+ ['Ruth','b','grey',1,'',1,'',1,'blue'],     ['Dex','a','blond',0,'beanie',0,'',0,'blue'],
+ ['Kofi','e','black',0,'',0,'beard',0,'brown'],['Nell','a','grey',0,'',1,'',0,'green'],
+ ['Sami','c','black',1,'beanie',0,'',1,'green'],['Hugo','b','red',0,'',0,'beard',0,'blue'],
+ ['Pia','d','blond',1,'',1,'',1,'brown'],    ['Walt','a','grey',0,'brim',0,'mustache',0,'blue'],
+ ['Zora','e','brown',1,'',0,'',0,'brown'],   ['Finn','b','blond',0,'',1,'',0,'green'],
+ ['Gus','c','bald',0,'',1,'mustache',0,'brown'],['Tess','b','brown',1,'brim',0,'',1,'blue'],
+ ['Omar','d','black',0,'',1,'beard',0,'green'],['Rosa','c','red',1,'',0,'',0,'brown'],
+ ['Vic','e','grey',0,'',0,'beard',1,'brown'], ['June','a','black',0,'',1,'',1,'blue'],
+ ['Arlo','a','brown',0,'beanie',0,'beard',0,'green'],['Mae','e','blond',1,'cap',0,'',0,'green'],
+ ['Theo','b','brown',0,'',0,'mustache',0,'blue'],['Iris','d','grey',1,'',1,'',0,'green'],
+];
+const CAST=RAW.map(([name,skin,hair,long,hat,glasses,facial,earrings,eyes],i)=>
+  ({id:i,name,skin,hair,long:!!long,hat,glasses:!!glasses,facial,earrings:!!earrings,eyes,shirt:SHIRT[i%SHIRT.length],hatc:SHIRT[(i*3+2)%SHIRT.length]}));
+
+const QUESTIONS=[
+ {g:'Hair',id:'black',t:'Black hair?',ask:'have black hair',f:c=>c.hair==='black'},
+ {g:'Hair',id:'brown',t:'Brown hair?',ask:'have brown hair',f:c=>c.hair==='brown'},
+ {g:'Hair',id:'blond',t:'Blond hair?',ask:'have blond hair',f:c=>c.hair==='blond'},
+ {g:'Hair',id:'red',t:'Red hair?',ask:'have red hair',f:c=>c.hair==='red'},
+ {g:'Hair',id:'grey',t:'Grey hair?',ask:'have grey hair',f:c=>c.hair==='grey'},
+ {g:'Hair',id:'bald',t:'Bald?',ask:'have a bald head',f:c=>c.hair==='bald'},
+ {g:'Hair',id:'long',t:'Long hair?',ask:'have long hair',f:c=>c.long},
+ {g:'Wearing',id:'hat',t:'Any hat?',ask:'wear a hat',f:c=>!!c.hat},
+ {g:'Wearing',id:'glasses',t:'Glasses?',ask:'wear glasses',f:c=>c.glasses},
+ {g:'Wearing',id:'earrings',t:'Earrings?',ask:'wear earrings',f:c=>c.earrings},
+ {g:'Face',id:'beard',t:'Beard?',ask:'have a beard',f:c=>c.facial==='beard'},
+ {g:'Face',id:'mustache',t:'Mustache only?',ask:'have a mustache (no beard)',f:c=>c.facial==='mustache'},
+ {g:'Face',id:'facial',t:'Any facial hair?',ask:'have any facial hair',f:c=>!!c.facial},
+ {g:'Eyes',id:'eblue',t:'Blue eyes?',ask:'have blue eyes',f:c=>c.eyes==='blue'},
+ {g:'Eyes',id:'ebrown',t:'Brown eyes?',ask:'have brown eyes',f:c=>c.eyes==='brown'},
+ {g:'Eyes',id:'egreen',t:'Green eyes?',ask:'have green eyes',f:c=>c.eyes==='green'},
+];
+
+// ---------- face art ----------
+const INK='#1f1b16',SW=2.4;
+function faceSVG(c){
+  const s=SKIN[c.skin],h=HAIR[c.hair]||'#3b2a20',brow=c.hair==='bald'?'#3b2a20':(c.hair==='grey'?'#9d978d':h);
+  const st=`stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"`;
+  let o='<rect width="100" height="100" fill="#fff"/>';
+  o+=`<circle cx="50" cy="44" r="40" fill="${c.shirt}" opacity=".16"/>`;
+  if(c.hair!=='bald'&&c.long) o+=`<path d="M23 50 Q21 20 50 20 Q79 20 77 50 L81 92 Q50 99 19 92 Z" fill="${h}" ${st}/>`;
+  o+=`<path d="M12 102 Q14 80 50 77 Q86 80 88 102 Z" fill="${c.shirt}" ${st}/>`;
+  o+=`<path d="M43 66 L43 80 Q50 84 57 80 L57 66 Z" fill="${s}" ${st}/>`;
+  o+=`<circle cx="26" cy="54" r="5.5" fill="${s}" ${st}/><circle cx="74" cy="54" r="5.5" fill="${s}" ${st}/>`;
+  o+=`<ellipse cx="50" cy="52" rx="24" ry="26" fill="${s}" ${st}/>`;
+  if(c.earrings) o+=`<circle cx="25" cy="62" r="3" fill="#e8b04b" ${st} stroke-width="1.6"/><circle cx="75" cy="62" r="3" fill="#e8b04b" ${st} stroke-width="1.6"/>`;
+  if(c.hair!=='bald'){
+    o+=c.long
+      ? `<path d="M25 52 Q23 24 50 24 Q77 24 75 52 Q72 38 58 34 Q52 42 36 40 Q28 42 25 52 Z" fill="${h}" ${st}/>`
+      : `<path d="M26 50 Q23 23 50 23 Q77 23 74 50 Q72 38 64 35 Q50 40 36 35 Q28 38 26 50 Z" fill="${h}" ${st}/>`;
+  }
+  // brows, eyes
+  o+=`<path d="M36 44 Q41 41 46 44 M54 44 Q59 41 64 44" stroke="${brow}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  for(const x of [41,59]){
+    o+=`<circle cx="${x}" cy="53" r="5.4" fill="#fff" ${st} stroke-width="1.8"/>`;
+    o+=`<circle cx="${x}" cy="53.5" r="3.3" fill="${EYE[c.eyes]}"/><circle cx="${x}" cy="53.5" r="1.5" fill="${INK}"/><circle cx="${x+1.2}" cy="52.2" r=".9" fill="#fff"/>`;
+  }
+  o+=`<path d="M50 57 Q47 62.5 50.5 63.5" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  const fh=c.hair==='bald'||c.hair==='grey'?(c.hair==='grey'?HAIR.grey:'#3b2a20'):h;
+  if(c.facial==='beard') o+=`<path d="M26.5 54 Q27 81 50 81 Q73 81 73.5 54 Q71 69 61 68 Q55 63 50 65 Q45 63 39 68 Q29 69 26.5 54 Z" fill="${fh}" ${st}/>`;
+  if(c.facial) o+=`<path d="M40 66 Q44 61.5 50 64 Q56 61.5 60 66 Q55 67.5 50 66.3 Q45 67.5 40 66 Z" fill="${fh}" ${st} stroke-width="1.8"/>`;
+  o+=`<path d="M44 ${c.facial?70:68} Q50 ${c.facial?74:73} 56 ${c.facial?70:68}" stroke="${c.facial==='beard'?'#fbf6ea':INK}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  if(c.glasses) o+=`<g fill="rgba(255,255,255,.18)" ${st}><circle cx="41" cy="53" r="8"/><circle cx="59" cy="53" r="8"/></g><path d="M49 52 Q50 50.5 51 52 M33 52 L26.5 50 M67 52 L73.5 50" stroke="${INK}" stroke-width="${SW}" fill="none"/>`;
+  if(c.hat==='beanie') o+=`<path d="M24 47 Q23 16 50 16 Q77 16 76 47 Z" fill="${c.hatc}" ${st}/><rect x="22" y="39" width="56" height="10" rx="5" fill="${c.hatc}" ${st}/><path d="M30 40 V48 M38 40 V48 M46 40 V48 M54 40 V48 M62 40 V48 M70 40 V48" stroke="${INK}" stroke-width="1.2" opacity=".5"/><circle cx="50" cy="15" r="5.5" fill="#fbf6ea" ${st}/>`;
+  if(c.hat==='cap') o+=`<path d="M25 44 Q24 19 50 19 Q76 19 75 44 Z" fill="${c.hatc}" ${st}/><path d="M58 42 Q84 38 90 45 Q74 49 58 46 Z" fill="${c.hatc}" ${st}/><circle cx="50" cy="19.5" r="2.5" fill="${INK}"/>`;
+  if(c.hat==='brim') o+=`<ellipse cx="50" cy="40" rx="35" ry="7" fill="${c.hatc}" ${st}/><path d="M32 40 Q33 16 50 16 Q67 16 68 40 Z" fill="${c.hatc}" ${st}/><path d="M33 34 Q50 38 67 34" stroke="${INK}" stroke-width="4.5" fill="none"/>`;
+  return o;
+}
+function cardHTML(c,extra=''){
+  return `<button class="fc ${extra}" data-id="${c.id}" aria-label="${c.name}"><div class="in">
+    <div class="face"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMax slice">${faceSVG(c)}</svg><div class="nm">${c.name}</div></div>
+    <div class="back"><span>?</span></div></div></button>`;
+}
+
+// ---------- state ----------
+let BOT=store.get('fo-bot','hard');
+let REC=store.get('fo-record',{});
+let G=null;
+const grid=$('#grid');
+
+function newGame(){
+  hideOverlay();
+  G={phase:'choose',mine:null,botSecret:Math.floor(Math.random()*CAST.length),
+     down:new Set(),botCands:CAST.map(c=>c.id),askedByMe:new Set(),askedByBot:new Set(),myQs:0,botQs:0,log:[],pick:null};
+  grid.innerHTML=CAST.map(c=>cardHTML(c)).join('');
+  $('#log').innerHTML='';
+  renderMe();hud();
+  setBar('Setup','Choose your character! Tap a face.',[['Random pick',()=>{choose(Math.floor(Math.random()*CAST.length))}]]);
+}
+function renderMe(){
+  const me=$('#me');
+  if(G.mine==null){me.classList.add('empty');me.querySelector('svg').innerHTML='';$('#meName').textContent='—';return}
+  me.classList.remove('empty');me.querySelector('svg').innerHTML=faceSVG(CAST[G.mine]);$('#meName').textContent=CAST[G.mine].name;
+}
+function hud(){
+  $('#youLeft').textContent=CAST.length-G.down.size;
+  $('#botLeft').textContent=G.botCands.length;
+  $('#qcount').textContent=G.phase==='choose'?'':`${G.myQs} asked · bot ${G.botQs}`;
+  $('#record').textContent=`Record vs ${BOT} bot: ${REC[BOT+'W']||0}–${REC[BOT+'L']||0}`;
+  document.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-pressed',b.dataset.bot===BOT));
+  grid.classList.toggle('guessing',G.phase==='guess');
+}
+function setBar(who,msg,acts){
+  $('#who').textContent=who;$('#msg').innerHTML=msg;
+  const a=$('#acts');a.innerHTML='';
+  (acts||[]).forEach(([label,fn,cls])=>{const b=document.createElement('button');b.className='tool'+(cls?' '+cls:'');b.textContent=label;b.onclick=fn;a.appendChild(b)});
+}
+function logLine(html,bot){const li=document.createElement('li');li.innerHTML=html;if(bot)li.className='b';$('#log').appendChild(li)}
+
+// ---------- card taps ----------
+grid.addEventListener('click',e=>{
+  const el=e.target.closest('.fc');if(!el||!G)return;
+  const id=+el.dataset.id;
+  if(G.phase==='choose'){
+    grid.querySelectorAll('.fc.pick').forEach(x=>x.classList.remove('pick'));el.classList.add('pick');G.pick=id;
+    setBar('Setup',`Lock in <b>${CAST[id].name}</b>?`,[['Random pick',()=>choose(Math.floor(Math.random()*CAST.length))],['Lock in',()=>choose(id),'primary']]);
+    return;
+  }
+  if(G.phase==='guess'){finalGuess(id);return}
+  if(G.phase==='ask'||G.phase==='flip'){
+    G.down.has(id)?G.down.delete(id):G.down.add(id);el.classList.toggle('down',G.down.has(id));hud();
+  }
+});
+
+function choose(id){
+  G.mine=id;G.phase='ask';
+  grid.querySelectorAll('.fc.pick').forEach(x=>x.classList.remove('pick'));
+  renderMe();hud();
+  logLine(`You picked <b>${CAST[id].name}</b>. The bot picked someone too.`);
+  myTurn('Bot has picked. You go first.');
+}
+function myTurn(lead){
+  G.phase='ask';hud();
+  setBar('Your turn',lead||'Ask a question or make your guess.',[['Make a guess',startGuess],['Ask a question',openQuestions,'primary']]);
+}
+
+// ---------- your questions ----------
+function openQuestions(){
+  const groups=[...new Set(QUESTIONS.map(q=>q.g))];
+  showOverlay(`<h2>Ask the bot</h2>${groups.map(g=>`<div class="qgroup"><span class="k">${g}</span><div class="qs">${
+    QUESTIONS.filter(q=>q.g===g).map(q=>`<button class="q" data-q="${q.id}" ${G.askedByMe.has(q.id)?'disabled':''}>${q.t}</button>`).join('')}</div></div>`).join('')}
+    <div class="btns"><button class="tool" id="qcancel">Cancel</button></div>`);
+  $('#qcancel').onclick=hideOverlay;
+  document.querySelectorAll('.q').forEach(b=>b.onclick=()=>{hideOverlay();askBot(QUESTIONS.find(q=>q.id===b.dataset.q))});
+}
+function askBot(q){
+  G.askedByMe.add(q.id);G.myQs++;G.phase='wait';hud();
+  const text=`Does your person ${q.ask}?`;
+  setBar('Your turn',`${text}<br><span class="dots3">Bot is thinking</span>`,[]);
+  setTimeout(()=>{
+    const yes=q.f(CAST[G.botSecret]);
+    logLine(`You: ${text} — <b>${yes?'Yes':'No'}</b>`);
+    G.phase='flip';G.lastQ={q,yes};hud();
+    setBar('Your turn',`${text} <span class="ans ${yes?'yes':'no'}">${yes?'YES':'NO'}</span><br><span style="font-weight:500;font-size:14px;color:var(--muted)">Flip down everyone that rules out.</span>`,
+      [['Flip for me',autoFlip],['End turn',botTurn,'primary']]);
+  },750);
+}
+function autoFlip(){
+  const {q,yes}=G.lastQ;
+  CAST.forEach(c=>{if(q.f(c)!==yes&&!G.down.has(c.id)){G.down.add(c.id);grid.querySelector(`.fc[data-id="${c.id}"]`).classList.add('down')}});
+  hud();
+}
+
+// ---------- guessing ----------
+function startGuess(){
+  G.phase='guess';hud();
+  setBar('Your guess','Tap the face you think the bot has. Wrong guess loses the game.',[['Cancel',()=>myTurn()]]);
+}
+function finalGuess(id){
+  G.phase='over';hud();
+  const right=id===G.botSecret;
+  logLine(`You guessed <b>${CAST[id].name}</b> — ${right?'correct':'wrong'}.`);
+  end(right,right?`You read it right. ${CAST[id].name} it is.`:`Not ${CAST[id].name}. The bot had ${CAST[G.botSecret].name}.`);
+}
+
+// ---------- bot ----------
+function botPickQuestion(){
+  const cands=G.botCands.map(i=>CAST[i]);
+  const open=QUESTIONS.filter(q=>!G.askedByBot.has(q.id));
+  const scored=open.map(q=>{const y=cands.filter(q.f).length;return {q,y,split:Math.abs(y-(cands.length-y))}}).filter(s=>s.y>0&&s.y<cands.length);
+  if(!scored.length)return null;
+  if(BOT==='easy')return scored[Math.floor(Math.random()*scored.length)].q;
+  const best=Math.min(...scored.map(s=>s.split)),pool=scored.filter(s=>s.split===best);
+  return pool[Math.floor(Math.random()*pool.length)].q;
+}
+function botTurn(){
+  G.phase='bot';hud();
+  setBar("Bot's turn",'<span class="dots3">Bot is sizing up the board</span>',[]);
+  setTimeout(()=>{
+    const n=G.botCands.length;
+    const q=n>1?botPickQuestion():null;
+    const shouldGuess=n===1||!q||(BOT==='easy'&&n===2&&Math.random()<.5);
+    if(shouldGuess){
+      const id=G.botCands[Math.floor(Math.random()*n)];
+      setBar("Bot's turn",`Bot: "Is it <b>${CAST[id].name}</b>?"`,[]);
+      setTimeout(()=>{
+        const right=id===G.mine;G.phase='over';
+        logLine(`Bot guessed <b>${CAST[id].name}</b> — ${right?'correct':'wrong'}.`,true);
+        end(!right,right?`The bot nailed it in ${G.botQs} question${G.botQs===1?'':'s'}.`:`The bot guessed ${CAST[id].name} and blew it. Free win.`);
+      },1100);
+      return;
+    }
+    G.askedByBot.add(q.id);G.botQs++;
+    const yes=q.f(CAST[G.mine]),text=`Does your person ${q.ask}?`;
+    setBar("Bot's turn",`Bot: "${text}"`,[]);
+    setTimeout(()=>{
+      G.botCands=G.botCands.filter(i=>q.f(CAST[i])===yes);
+      logLine(`Bot: ${text} — <b>${yes?'Yes':'No'}</b> (bot has ${G.botCands.length} left)`,true);
+      $('#msg').innerHTML=`Bot: "${text}" <span class="ans ${yes?'yes':'no'}">${yes?'YES':'NO'}</span>`;
+      hud();
+      setTimeout(()=>myTurn(G.botCands.length===1?'Bot is down to one face. Guess now or it wins next turn.':null),1300);
+    },1000);
+  },800);
+}
+
+// ---------- end ----------
+function end(won,line){
+  if(won)REC[BOT+'W']=(REC[BOT+'W']||0)+1;else REC[BOT+'L']=(REC[BOT+'L']||0)+1;
+  store.set('fo-record',REC);hud();
+  grid.querySelector(`.fc[data-id="${G.botSecret}"]`)?.classList.add('reveal');
+  setBar(won?'You win':'Bot wins',line,[['Play again',newGame,'primary']]);
+  setTimeout(()=>showOverlay(`
+    <div class="stamp ${won?'good':''}">${won?'YOU WIN':'BOT WINS'}</div>
+    <p>${line}</p>
+    <div class="duo">
+      <figure><figcaption>You</figcaption>${cardHTML(CAST[G.mine])}</figure>
+      <figure><figcaption>Bot</figcaption>${cardHTML(CAST[G.botSecret])}</figure>
+    </div>
+    <p class="stats"><b>${G.myQs}</b> questions from you · <b>${G.botQs}</b> from the bot</p>
+    <div class="btns"><button class="tool" id="closeO">Look at the board</button><button class="tool primary" id="again">Play again</button></div>`),650);
+  setTimeout(()=>{const a=$('#again');if(a)a.onclick=newGame;const c=$('#closeO');if(c)c.onclick=hideOverlay},700);
+}
+
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{
+  if(b.dataset.bot===BOT)return;
+  
+  BOT=b.dataset.bot;store.set('fo-bot',BOT);newGame();
+});
+
+
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+newGame();
+</script>
+</body>
+</html>
