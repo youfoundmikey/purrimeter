@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Purrimeter</title>
+<meta name="description" content="A cat logic puzzle. One cat per row, column and color. No touching. Not even diagonally.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23e8b04b'/%3E%3Cpath d='M8 34 L8 10 L14.5 17 Q20 14.5 25.5 17 L32 10 L32 34 Q20 38 8 34Z' fill='%231f1b16'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3ead8; --card:#fbf6ea; --ink:#1f1b16; --muted:#6b5f50;
+  --line:rgba(31,27,22,.18); --accent:#d9582b; --heart:#d9452b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{height:10px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{max-width:520px;margin:0 auto;padding:18px 16px 40px;display:flex;flex-direction:column;gap:14px}
+header{text-align:center}
+h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(34px,10vw,52px);letter-spacing:.04em;margin:4px 0 0;line-height:1}
+.tag{margin:6px 0 0;color:var(--muted);font-style:italic}
+.modes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);
+  border-radius:999px;padding:6px 12px;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700}
+.hearts{font-size:22px;letter-spacing:2px;color:var(--heart);min-width:80px}
+.hearts .lost{color:rgba(31,27,22,.2)}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.timer{font-variant-numeric:tabular-nums;min-width:80px;text-align:right;font-size:18px}
+.board{--n:8;width:100%;aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);
+  border:3px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--card);
+  touch-action:none;user-select:none;box-shadow:6px 6px 0 var(--ink)}
+.board.loading{display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted)}
+.cell{appearance:none;border:0;margin:0;padding:0;position:relative;cursor:pointer;
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.cell.bt{border-top:3px solid var(--ink)} .cell.bl{border-left:3px solid var(--ink)}
+.cell.br{border-right:3px solid var(--ink)} .cell.bb{border-bottom:3px solid var(--ink)}
+.cell .x{font-weight:700;font-size:clamp(14px,4.5vw,24px);line-height:1}
+.cell[data-s="2"] .x{opacity:.35}
+.cell svg{width:78%;height:78%;animation:pop .28s cubic-bezier(.3,1.6,.5,1)}
+.cell.wrong{animation:shake .38s}
+.cell.wrong::after{content:"";position:absolute;inset:0;background:var(--heart);opacity:.45;animation:fade .6s forwards}
+@keyframes pop{from{transform:scale(.2) rotate(-20deg)}to{transform:none}}
+@keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+@keyframes fade{to{opacity:0}}
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);
+  border-radius:10px;padding:10px 4px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool[aria-pressed="true"]{background:#e8b04b}
+.hint-line{text-align:center;color:var(--muted);font-size:14px;margin:0}
+details{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:10px 14px}
+summary{font-weight:700;cursor:pointer}
+details ul{padding-left:18px;margin:8px 0 0;line-height:1.5}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:26px 20px 20px;max-width:360px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink)}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);
+  animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.card p{margin:14px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+footer{text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header>
+    <h1>PURRIMETER</h1>
+    <p class="tag">cats need personal space.</p>
+  </header>
+
+  <nav class="modes" aria-label="Puzzle mode">
+    <button class="pill" data-mode="daily">Daily</button>
+    <button class="pill" data-size="5">5×5</button>
+    <button class="pill" data-size="6">6×6</button>
+    <button class="pill" data-size="7">7×7</button>
+    <button class="pill" data-size="8">8×8</button>
+    <button class="pill" data-size="9">9×9</button>
+  </nav>
+
+  <section class="hud">
+    <div class="hearts" id="hearts" aria-label="lives"></div>
+    <div class="label" id="label"></div>
+    <div class="timer" id="timer">0:00</div>
+  </section>
+
+  <div id="board" class="board loading">herding cats…</div>
+
+  <p class="hint-line">Tap = ✕ &nbsp;·&nbsp; Double-tap = 🐈 &nbsp;·&nbsp; Drag to paint ✕</p>
+
+  <section class="tools">
+    <button class="tool" id="undo">Undo</button>
+    <button class="tool" id="hint">Hint</button>
+    <button class="tool" id="autox" aria-pressed="true">Auto ✕</button>
+    <button class="tool" id="reset">Clear</button>
+  </section>
+
+  <details>
+    <summary>How to play</summary>
+    <ul>
+      <li>Every row, every column, and every color zone gets <b>exactly one cat</b>.</li>
+      <li>Cats can't touch. Not side to side, not even corner to corner.</li>
+      <li>Every puzzle has one solution, so it's all logic. Guess wrong and you lose a heart. Three strikes and you're out.</li>
+      <li>Mark spots that can't be cats with ✕. On desktop, right-click drops a cat.</li>
+    </ul>
+  </details>
+
+  <footer>Daily puzzle resets at midnight, your time.</footer>
+</main>
+
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
+  <div class="card" id="card"></div>
+</div>
+
+<script>
+/* ---------- GEN START ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let k=0;k<s.length;k++){h^=s.charCodeAt(k);h=Math.imul(h,16777619)}return h>>>0}
+function shuffle(a,r){for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+// one cat per row & column, never adjacent
+function placeCats(n,r){
+  const cols=[],used=new Array(n).fill(false);
+  (function bt(row){
+    if(row===n)return true;
+    for(const c of shuffle([...Array(n).keys()],r)){
+      if(used[c])continue;
+      if(row>0&&Math.abs(c-cols[row-1])<=1)continue;
+      used[c]=true;cols[row]=c;
+      if(bt(row+1))return true;
+      used[c]=false;
+    }
+    return false;
+  })(0);
+  return cols;
+}
+
+// grow one color zone out of each cat
+function growRegions(n,cols,r){
+  const reg=new Array(n*n).fill(-1);
+  for(let i=0;i<n;i++)reg[i*n+cols[i]]=i;
+  let left=n*n-n;
+  const nb=i=>{const out=[],y=Math.floor(i/n),x=i%n;
+    if(y>0)out.push(i-n);if(y<n-1)out.push(i+n);if(x>0)out.push(i-1);if(x<n-1)out.push(i+1);return out};
+  while(left>0){
+    const cand=[];
+    for(let i=0;i<n*n;i++){if(reg[i]!==-1)continue;
+      const owners=nb(i).filter(j=>reg[j]!==-1);
+      if(owners.length)cand.push([i,owners]);}
+    const [i,owners]=cand[Math.floor(r()*cand.length)];
+    reg[i]=reg[owners[Math.floor(r()*owners.length)]];
+    left--;
+  }
+  return reg;
+}
+
+// returns up to `limit` solutions (arrays of column per row)
+function solve(n,reg,limit=2){
+  const sols=[],cur=[];
+  const usedC=new Array(n).fill(false),usedR=new Array(n).fill(false);
+  (function bt(row,prev){
+    if(sols.length>=limit)return;
+    if(row===n){sols.push(cur.slice());return}
+    for(let c=0;c<n;c++){
+      if(usedC[c]||(row>0&&Math.abs(c-prev)<=1))continue;
+      const g=reg[row*n+c];if(usedR[g])continue;
+      usedC[c]=usedR[g]=true;cur[row]=c;bt(row+1,c);usedC[c]=usedR[g]=false;
+    }
+  })(0,-9);
+  return sols;
+}
+function countSolutions(n,reg,limit=2){return solve(n,reg,limit).length}
+
+function connectedWithout(n,reg,g,skip){
+  let start=-1,total=0;
+  for(let i=0;i<n*n;i++)if(reg[i]===g&&i!==skip){total++;if(start<0)start=i}
+  if(total===0)return false;
+  const seen=new Set([start]),q=[start];
+  while(q.length){const i=q.pop(),y=Math.floor(i/n),x=i%n;
+    for(const j of [y>0?i-n:-1,y<n-1?i+n:-1,x>0?i-1:-1,x<n-1?i+1:-1])
+      if(j>=0&&j!==skip&&reg[j]===g&&!seen.has(j)){seen.add(j);q.push(j)}}
+  return seen.size===total;
+}
+
+function generate(n,seed){
+  const r=mulberry32(seed);
+  for(let attempt=0;attempt<500;attempt++){
+    const cols=placeCats(n,r),reg=growRegions(n,cols,r);
+    // repair: whenever a second solution exists, reshape a region to break it
+    for(let step=0;step<n*n*3;step++){
+      const sols=solve(n,reg,2);
+      const alt=sols.find(s=>s.some((c,y)=>c!==cols[y]));
+      if(!alt)return{reg,sol:cols,attempts:attempt};
+      const cells=shuffle(alt.map((c,y)=>c!==cols[y]?y*n+c:-1).filter(i=>i>=0),r);
+      let moved=false;
+      for(const i of cells){
+        const y=Math.floor(i/n),x=i%n;
+        const nbs=shuffle([y>0?i-n:-1,y<n-1?i+n:-1,x>0?i-1:-1,x<n-1?i+1:-1].filter(j=>j>=0&&reg[j]!==reg[i]),r);
+        if(!nbs.length||!connectedWithout(n,reg,reg[i],i))continue;
+        reg[i]=reg[nbs[0]];moved=true;break;
+      }
+      if(!moved)break;
+    }
+  }
+  throw new Error('no puzzle found');
+}
+/* ---------- GEN END ---------- */
+
+const $=s=>document.querySelector(s);
+const boardEl=$('#board');
+const PALETTE=['#e8b04b','#7fb6a8','#d98a6c','#a7c4e2','#c9b3d9','#e3d46d','#9fc27a','#f0a3a8','#c7b08f'];
+const CAT='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 34 L7 9 L14 16.5 Q20 14 26 16.5 L33 9 L33 34 Q20 38.5 7 34Z" fill="#1f1b16"/><circle cx="14.8" cy="24.5" r="2.4" fill="#f3ead8"/><circle cx="25.2" cy="24.5" r="2.4" fill="#f3ead8"/><circle cx="15.3" cy="24.8" r="1" fill="#1f1b16"/><circle cx="25.7" cy="24.8" r="1" fill="#1f1b16"/><path d="M18.4 29 L21.6 29 L20 30.8Z" fill="#e58f8f"/></svg>';
+const X='<span class="x">✕</span>';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let S=null,timerId=null,AUTO=store.get('purr-autox',true);
+
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+
+function newGame(mode,size){
+  hideOverlay();
+  boardEl.className='board loading';boardEl.textContent='herding cats…';
+  setTimeout(()=>{
+    const n=mode==='daily'?8:size;
+    const seed=mode==='daily'?hashStr('purrimeter:'+todayKey()):(Math.random()*4294967296)>>>0;
+    const p=generate(n,seed);
+    S={mode,n,seed,reg:p.reg,sol:p.sol,colors:shuffle(PALETTE.slice(),mulberry32(seed^0x9e3779b9)),
+       cells:new Array(n*n).fill(0),hearts:3,hints:0,history:[],start:Date.now(),done:false};
+    store.set('purr-mode',{mode,size:n});
+    render();startTimer();syncModes();
+  },20);
+}
+function restart(){
+  hideOverlay();
+  Object.assign(S,{cells:new Array(S.n*S.n).fill(0),hearts:3,hints:0,history:[],start:Date.now(),done:false});
+  paint();hud();startTimer();
+}
+
+function render(){
+  const {n,reg}=S;
+  boardEl.className='board';boardEl.style.setProperty('--n',n);boardEl.innerHTML='';
+  for(let i=0;i<n*n;i++){
+    const y=Math.floor(i/n),x=i%n,d=document.createElement('button');
+    d.className='cell';d.dataset.i=i;d.style.background=S.colors[reg[i]];
+    if(y>0&&reg[i-n]!==reg[i])d.classList.add('bt');
+    if(x>0&&reg[i-1]!==reg[i])d.classList.add('bl');
+    if(x<n-1&&reg[i+1]!==reg[i])d.classList.add('br');else if(x===n-1)d.style.borderRight='0';
+    if(y<n-1&&reg[i+n]!==reg[i])d.classList.add('bb');else if(y===n-1)d.style.borderBottom='0';
+    d.setAttribute('aria-label',`row ${y+1} column ${x+1}`);
+    boardEl.appendChild(d);
+  }
+  paint();hud();
+}
+function paintCell(i){
+  const el=boardEl.children[i],s=S.cells[i];
+  if(el.dataset.s===String(s))return;
+  el.dataset.s=s;el.innerHTML=s===3?CAT:(s===1||s===2)?X:'';
+}
+function paint(){for(let i=0;i<S.n*S.n;i++)paintCell(i)}
+function hud(){
+  $('#hearts').innerHTML=[0,1,2].map(k=>`<span class="${k<S.hearts?'':'lost'}">♥</span>`).join('');
+  const d=new Date();
+  $('#label').textContent=S.mode==='daily'?'Daily · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric'}):`Free play · ${S.n}×${S.n}`;
+  $('#autox').setAttribute('aria-pressed',AUTO);
+}
+function syncModes(){
+  document.querySelectorAll('.pill').forEach(b=>{
+    const on=b.dataset.mode==='daily'?S.mode==='daily':(S.mode==='free'&&+b.dataset.size===S.n);
+    b.setAttribute('aria-pressed',on);
+  });
+}
+function startTimer(){
+  clearInterval(timerId);
+  timerId=setInterval(()=>{if(S&&!S.done)$('#timer').textContent=fmt(Date.now()-S.start)},250);
+  $('#timer').textContent='0:00';
+}
+function pushHist(){S.history.push(S.cells.slice());if(S.history.length>200)S.history.shift()}
+
+function autoX(y,x){
+  const n=S.n,g=S.reg[y*n+x];
+  for(let j=0;j<n*n;j++){
+    if(S.cells[j]!==0)continue;
+    const yy=Math.floor(j/n),xx=j%n;
+    if(yy===y||xx===x||S.reg[j]===g||(Math.abs(yy-y)<=1&&Math.abs(xx-x)<=1))S.cells[j]=2;
+  }
+}
+function tryCat(i,free){
+  if(S.done||S.cells[i]===3)return;
+  const y=Math.floor(i/S.n),x=i%S.n;
+  if(S.sol[y]===x){
+    pushHist();S.cells[i]=3;if(AUTO)autoX(y,x);paint();
+    if(S.cells.filter(v=>v===3).length===S.n)win();
+  }else if(!free){
+    S.hearts--;S.cells[i]=1;paintCell(i);hud();
+    const el=boardEl.children[i];el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong');
+    if(navigator.vibrate)navigator.vibrate(80);
+    if(S.hearts<=0)setTimeout(lose,450);
+  }
+}
+
+// input: tap toggles ✕, double-tap drops a cat, drag paints ✕
+let lastTap={i:-1,t:0},painting=null;
+boardEl.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.cell');if(!el||!S||S.done)return;
+  if(e.button===2)return;
+  e.preventDefault();
+  const i=+el.dataset.i,now=performance.now();
+  if(lastTap.i===i&&now-lastTap.t<330){
+    lastTap={i:-1,t:0};painting=null;
+    if(S.history.length)S.cells=S.history.pop();
+    paintCell(i);tryCat(i);return;
+  }
+  lastTap={i,t:now};
+  if(S.cells[i]===3)return;
+  pushHist();
+  const val=S.cells[i]===0?1:0;
+  S.cells[i]=val;paintCell(i);
+  painting={val,seen:new Set([i])};
+  try{boardEl.setPointerCapture(e.pointerId)}catch(_){}
+});
+boardEl.addEventListener('pointermove',e=>{
+  if(!painting)return;
+  const el=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('.cell');if(!el)return;
+  const i=+el.dataset.i;if(painting.seen.has(i)||S.cells[i]===3)return;
+  painting.seen.add(i);lastTap={i:-1,t:0};S.cells[i]=painting.val;paintCell(i);
+});
+['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>painting=null));
+boardEl.addEventListener('contextmenu',e=>{
+  e.preventDefault();const el=e.target.closest('.cell');if(el&&S)tryCat(+el.dataset.i);
+});
+
+$('#undo').onclick=()=>{if(S&&!S.done&&S.history.length){S.cells=S.history.pop();paint()}};
+$('#reset').onclick=()=>{if(S&&!S.done){pushHist();S.cells=S.cells.map(v=>v===3?3:0);if(AUTO)S.cells.forEach((v,i)=>{if(v===3)autoX(Math.floor(i/S.n),i%S.n)});paint()}};
+$('#autox').onclick=()=>{AUTO=!AUTO;store.set('purr-autox',AUTO);hud()};
+$('#hint').onclick=()=>{
+  if(!S||S.done)return;
+  const rows=[...Array(S.n).keys()].filter(y=>S.cells[y*S.n+S.sol[y]]!==3);
+  if(!rows.length)return;
+  const y=rows[Math.floor(Math.random()*rows.length)];
+  S.hints++;tryCat(y*S.n+S.sol[y],true);
+};
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>b.dataset.mode==='daily'?newGame('daily'):newGame('free',+b.dataset.size));
+
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+
+function win(){
+  S.done=true;const t=Date.now()-S.start;$('#timer').textContent=fmt(t);
+  const key='purr-best-'+(S.mode==='daily'?'daily':S.n);
+  const best=store.get(key,null);const isBest=S.hints===0&&(best==null||t<best);
+  if(isBest)store.set(key,t);
+  const hearts='♥'.repeat(S.hearts)+'♡'.repeat(3-S.hearts);
+  const share=`Purrimeter ${S.mode==='daily'?'Daily '+todayKey():S.n+'×'+S.n} · ${fmt(t)} · ${hearts}${S.hints?` · ${S.hints} hint${S.hints>1?'s':''}`:''}`;
+  setTimeout(()=>{
+    showOverlay(`
+    <div class="stamp">PURRFECT</div>
+    <p class="stats">${fmt(t)} &nbsp; <span style="color:var(--heart)">${hearts}</span></p>
+    <p>${isBest?'New personal best. Frame it.':S.hints?`Solved with ${S.hints} hint${S.hints>1?'s':''}. Next one, no training wheels.`:'Best: '+fmt(best)}</p>
+    <div class="btns">
+      <button class="tool" id="share">Copy result</button>
+      <button class="tool" id="next">${S.mode==='daily'?'Free play':'Next puzzle'}</button>
+    </div>`);
+    $('#share').onclick=async e=>{try{await navigator.clipboard.writeText(share);e.target.textContent='Copied'}catch(_){e.target.textContent='Copy failed'}};
+    $('#next').onclick=()=>newGame('free',S.mode==='daily'?7:S.n);
+  },350);
+}
+function lose(){
+  S.done=true;
+  showOverlay(`
+    <div class="stamp">OUT OF LIVES</div>
+    <p>Nine lives is a cat thing. You get three. Prove it before you drop the cat.</p>
+    <div class="btns">
+      <button class="tool" id="retry">Retry</button>
+      <button class="tool" id="fresh">New puzzle</button>
+    </div>`);
+  $('#retry').onclick=restart;
+  $('#fresh').onclick=()=>S.mode==='daily'?restart():newGame('free',S.n);
+}
+
+const last=store.get('purr-mode',null);
+if(last&&last.mode==='free')newGame('free',last.size);else newGame('daily');
+</script>
+</body>
+</html>
