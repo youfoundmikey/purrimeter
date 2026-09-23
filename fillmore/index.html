@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fillmore · Arkade</title>
+<meta name="description" content="One line. Every block. No lifting, no crossing.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23e8b04b'/%3E%3Cpath d='M11 11 H29 V29 H18' stroke='%231f1b16' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='11' cy='11' r='5.5' fill='%231f1b16'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3ead8; --card:#fbf6ea; --ink:#1f1b16; --muted:#6b5f50; --accent:#d9582b; --fill:#e8b04b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{height:10px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{max-width:520px;margin:0 auto;padding:18px 16px 40px;display:flex;flex-direction:column;gap:14px}
+header{text-align:center}
+h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(34px,10vw,52px);letter-spacing:.04em;margin:4px 0 0;line-height:1}
+.tag{margin:6px 0 0;color:var(--muted);font-style:italic}
+.modes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);
+  border-radius:999px;padding:6px 12px;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700}
+.count{font-size:18px;min-width:80px;font-variant-numeric:tabular-nums}
+.count small{color:var(--muted);font-weight:600}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.timer{font-variant-numeric:tabular-nums;min-width:80px;text-align:right;font-size:18px}
+.stage{display:flex;justify-content:center;align-items:center;min-height:240px}
+.stage.loading{font-weight:700;color:var(--muted)}
+#board{display:block;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
+#board .t{fill:var(--card);transition:fill .12s}
+#board .t.on{fill:var(--fill)}
+#board .t.hinted{animation:glow .5s ease-in-out 3}
+#board.won .t{animation:wave .45s ease-out both;transform-box:fill-box;transform-origin:center}
+@keyframes glow{50%{fill:#fff}}
+@keyframes wave{40%{transform:scale(.82)}100%{transform:none}}
+.line{fill:none;stroke:var(--ink);stroke-linecap:round;stroke-linejoin:round}
+.hint-line{text-align:center;color:var(--muted);font-size:14px;margin:0}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);
+  border-radius:10px;padding:10px 4px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;box-shadow:3px 3px 0 var(--ink);transform:none}
+.tool .badge{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--card);font-size:13px}
+.progress{display:flex;align-items:center;justify-content:center;gap:8px;margin:-4px 0 0;font-size:13px;color:var(--muted)}
+.progress .dots{display:flex;gap:5px}
+.progress .dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink)}
+.progress .dot.on{background:var(--accent)}
+details{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:10px 14px}
+summary{font-weight:700;cursor:pointer}
+details ul{padding-left:18px;margin:8px 0 0;line-height:1.5}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:26px 20px 20px;max-width:360px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink)}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);
+  animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.card p{margin:14px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+footer{text-align:center;color:var(--muted);font-size:12px}
+.home{align-self:flex-start;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;background:var(--card);box-shadow:2px 2px 0 var(--ink);margin-bottom:-6px}
+.home:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <a class="home" href="../">&larr; Arkade</a>
+  <header>
+    <h1>FILLMORE</h1>
+    <p class="tag">one line. no lifting. no excuses.</p>
+  </header>
+
+  <nav class="modes" aria-label="Puzzle mode">
+    <button class="pill" data-mode="daily">Daily</button>
+    <button class="pill" data-tier="easy">Easy</button>
+    <button class="pill" data-tier="medium">Medium</button>
+    <button class="pill" data-tier="hard">Hard</button>
+    <button class="pill" data-tier="extra">Extra Hard</button>
+  </nav>
+
+  <section class="hud">
+    <div class="count" id="count">0 <small>/ 0</small></div>
+    <div class="label" id="label"></div>
+    <div class="timer" id="timer">0:00</div>
+  </section>
+
+  <div class="stage loading" id="stage">drawing the maze…</div>
+
+  <p class="hint-line">Drag from the dot &nbsp;·&nbsp; Drag back to undo</p>
+
+  <section class="tools">
+    <button class="tool" id="undo">Undo</button>
+    <button class="tool" id="hint">Hint<span class="badge" id="hintCount">0</span></button>
+    <button class="tool" id="restart">Restart</button>
+  </section>
+  <p class="progress" id="progress"></p>
+
+  <details>
+    <summary>How to play</summary>
+    <ul>
+      <li>Start on the black dot and drag <b>one continuous line</b> through every block.</li>
+      <li>Only up, down, left and right. You can't cross your own line or visit a block twice.</li>
+      <li>Tap anywhere on your line to cut it back to that block.</li>
+      <li>Holes in the board are off limits. The shape is the whole challenge.</li>
+      <li>A hint draws the next 3 correct moves, and rewinds you first if you've gone off course.</li>
+      <li>Hints are earned: every 3 boards you clear without a hint banks you 1 more.</li>
+    </ul>
+  </details>
+
+  <footer>Daily puzzle resets at midnight, your time.</footer>
+</main>
+
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
+  <div class="card" id="card"></div>
+</div>
+
+<script>
+/* ---------- GEN START ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let k=0;k<s.length;k++){h^=s.charCodeAt(k);h=Math.imul(h,16777619)}return h>>>0}
+
+const TIERS={
+  easy:  {name:'Easy',      dims:[[4,4],[4,5],[5,4],[5,5]],             holes:[0,2]},
+  medium:{name:'Medium',    dims:[[5,5],[5,6],[6,5],[6,6]],             holes:[2,4]},
+  hard:  {name:'Hard',      dims:[[6,6],[6,7],[7,6],[5,8],[7,7]],       holes:[3,6]},
+  extra: {name:'Extra Hard',dims:[[7,7],[7,8],[6,9],[8,7],[7,9],[8,8]], holes:[4,8]},
+};
+
+function neighbors(i,W,H){const x=i%W,y=(i-x)/W,o=[];
+  if(x>0)o.push(i-1);if(x<W-1)o.push(i+1);if(y>0)o.push(i-W);if(y<H-1)o.push(i+W);return o}
+
+// carve holes, biased toward edges like a real level; keep it connected and parity-balanced
+function carve(W,H,k,r){
+  const on=new Uint8Array(W*H).fill(1);
+  const edge=i=>{const x=i%W,y=(i-x)/W;return x===0||y===0||x===W-1||y===H-1};
+  let removed=0,guard=0;
+  while(removed<k&&guard++<400){
+    const i=Math.floor(r()*W*H);if(!on[i])continue;
+    if(!edge(i)&&r()<.7)continue;           // mostly nibble the edges
+    on[i]=0;
+    if(!connected(on,W,H)){on[i]=1;continue}
+    removed++;
+  }
+  // the outline must still span the full box, otherwise the shape just shrank
+  for(let x=0;x<W;x++){let any=0;for(let y=0;y<H;y++)any|=on[y*W+x];if(!any)return null}
+  for(let y=0;y<H;y++){let any=0;for(let x=0;x<W;x++)any|=on[y*W+x];if(!any)return null}
+  let b=0,w=0;for(let i=0;i<W*H;i++)if(on[i])(((i%W)+Math.floor(i/W))%2?b++:w++);
+  if(Math.abs(b-w)>1)return null;
+  return on;
+}
+function connected(on,W,H){
+  let s=-1,n=0;for(let i=0;i<W*H;i++)if(on[i]){n++;if(s<0)s=i}
+  const seen=new Uint8Array(W*H),st=[s];seen[s]=1;let c=1;
+  while(st.length){const i=st.pop();for(const j of neighbors(i,W,H))if(on[j]&&!seen[j]){seen[j]=1;c++;st.push(j)}}
+  return c===n;
+}
+// randomized Warnsdorff walk inside the shape
+function walkIn(on,W,H,start,r){
+  const seen=new Uint8Array(W*H);let cur=start;seen[cur]=1;const p=[cur];
+  const free=j=>on[j]&&!seen[j];
+  for(;;){
+    const opts=neighbors(cur,W,H).filter(free);if(!opts.length)break;
+    let best=9,pool=[];
+    for(const j of opts){const d=neighbors(j,W,H).filter(free).length;
+      if(d<best){best=d;pool=[j]}else if(d===best)pool.push(j)}
+    cur=(r()<.9?pool:opts)[Math.floor(r()*(r()<.9?pool:opts).length)];
+    seen[cur]=1;p.push(cur);
+  }
+  return p;
+}
+
+function makePuzzle(tierKey,seed){
+  const t=TIERS[tierKey],r=mulberry32(seed);
+  for(let shape=0;shape<400;shape++){
+    let [W,H]=t.dims[Math.floor(r()*t.dims.length)];
+    const k=t.holes[0]+Math.floor(r()*(t.holes[1]-t.holes[0]+1));
+    const on=carve(W,H,k,r);if(!on)continue;
+    const cells=[];for(let i=0;i<W*H;i++)if(on[i])cells.push(i);
+    let b=0;for(const i of cells)b+=((i%W)+Math.floor(i/W))%2;
+    const w=cells.length-b,major=b>w?1:w>b?0:-1;
+    const starts=cells.filter(i=>major<0||((i%W)+Math.floor(i/W))%2===major);
+    for(let a=0;a<120;a++){
+      const s=starts[Math.floor(r()*starts.length)],p=walkIn(on,W,H,s,r);
+      if(p.length===cells.length)return {W,H,tier:t.name,sol:p,cells:new Set(p),start:p[0],holes:k};
+    }
+  }
+  throw new Error('no puzzle');
+}
+/* ---------- GEN END ---------- */
+
+
+const $=s=>document.querySelector(s);
+const NS='http://www.w3.org/2000/svg',U=100;
+const PALETTE=['#e8b04b','#7fb6a8','#e07e57','#a7c4e2','#c9b3d9','#e3d46d','#9fc27a','#f0a3a8'];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const CLEAN_PER_HINT=3;
+let BANK=store.get('fillmore-bank',{hints:3,clean:0,dailyDone:null});
+let G=null,svg=null,tiles=[],line=null,headDot=null,timerId=null;
+
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function saveBank(){store.set('fillmore-bank',BANK)}
+
+function newGame(mode,tier){
+  hideOverlay();
+  const stage=$('#stage');stage.className='stage loading';stage.textContent='drawing the maze…';
+  setTimeout(()=>{
+    const daily=mode==='daily';
+    const t=daily?'hard':tier;
+    const seed=daily?hashStr('fillmore:'+todayKey()):(Math.random()*4294967296)>>>0;
+    const p=makePuzzle(t,seed);
+    G={...p,mode,tierKey:t,seed,path:[p.start],hints:0,start0:Date.now(),done:false};
+    document.documentElement.style.setProperty('--fill',PALETTE[seed%PALETTE.length]);
+    store.set('fillmore-mode',{mode,tier:t});
+    build();update();hud();syncModes();startTimer();
+  },20);
+}
+
+function build(){
+  const {W,H}=G,stage=$('#stage');
+  stage.className='stage';stage.innerHTML='';
+  svg=document.createElementNS(NS,'svg');svg.id='board';
+  const pad=8,sh=14;
+  svg.setAttribute('viewBox',`${-pad} ${-pad} ${W*U+pad*2+sh} ${H*U+pad*2+sh}`);
+  const g=(cls)=>{const e=document.createElementNS(NS,'g');if(cls)e.setAttribute('class',cls);svg.appendChild(e);return e};
+  const shadow=g(),outline=g(),field=g();
+  const rect=(parent,x,y,w,h,fill,cls)=>{const r=document.createElementNS(NS,'rect');
+    r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);
+    if(fill)r.setAttribute('fill',fill);if(cls)r.setAttribute('class',cls);parent.appendChild(r);return r};
+  tiles=[];
+  for(let i=0;i<W*H;i++){
+    if(!G.cells.has(i)){tiles.push(null);continue}
+    const x=(i%W)*U,y=Math.floor(i/W)*U;
+    rect(shadow,x-6+sh,y-6+sh,U+12,U+12,'#1f1b16');     // offset block shadow
+    rect(outline,x-6,y-6,U+12,U+12,'#1f1b16');          // thick outer edge + bold inner lines
+    tiles.push(rect(field,x+4,y+4,U-8,U-8,null,'t'));
+  }
+  line=document.createElementNS(NS,'polyline');line.setAttribute('class','line');line.setAttribute('stroke-width',U*.26);svg.appendChild(line);
+  const [sx,sy]=center(G.start);
+  const dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',sx);dot.setAttribute('cy',sy);dot.setAttribute('r',U*.3);dot.setAttribute('fill','#1f1b16');svg.appendChild(dot);
+  headDot=document.createElementNS(NS,'circle');headDot.setAttribute('r',U*.09);headDot.setAttribute('fill','#fbf6ea');svg.appendChild(headDot);
+  stage.appendChild(svg);
+  bindInput();fit();
+}
+function fit(){
+  if(!svg)return;
+  const avail=$('.app').clientWidth-32,maxH=Math.max(260,innerHeight*.58);
+  const cell=Math.min(avail/(G.W+.3),maxH/(G.H+.3),84);
+  svg.style.width=cell*(G.W+.3)+'px';svg.style.height=cell*(G.H+.3)+'px';
+}
+addEventListener('resize',fit);
+
+const center=i=>[(i%G.W)*U+U/2,Math.floor(i/G.W)*U+U/2];
+function update(){
+  const on=new Set(G.path);
+  tiles.forEach((t,i)=>{if(t)t.classList.toggle('on',on.has(i))});
+  line.setAttribute('points',G.path.map(i=>center(i).join(',')).join(' '));
+  const [hx,hy]=center(G.path[G.path.length-1]);headDot.setAttribute('cx',hx);headDot.setAttribute('cy',hy);
+  $('#count').innerHTML=`${G.path.length} <small>/ ${G.cells.size}</small>`;
+}
+function hud(){
+  const d=new Date();
+  $('#label').textContent=G.mode==='daily'?'Daily · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric'}):G.tier;
+  $('#hintCount').textContent=BANK.hints;
+  $('#hint').disabled=BANK.hints<=0||G.done;
+  $('#progress').innerHTML=`<span class="dots">${[0,1,2].map(k=>`<span class="dot ${k<BANK.clean?'on':''}"></span>`).join('')}</span> no-hint clears toward your next hint`;
+}
+function syncModes(){
+  document.querySelectorAll('.pill').forEach(b=>{
+    const on=b.dataset.mode==='daily'?G.mode==='daily':(G.mode==='free'&&b.dataset.tier===G.tierKey);
+    b.setAttribute('aria-pressed',on);
+  });
+}
+function startTimer(){
+  clearInterval(timerId);$('#timer').textContent='0:00';
+  timerId=setInterval(()=>{if(G&&!G.done)$('#timer').textContent=fmt(Date.now()-G.start0)},250);
+}
+
+// ---------- input ----------
+function cellAt(e,strict){
+  const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+  const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+  const x=Math.floor(p.x/U),y=Math.floor(p.y/U);
+  if(x<0||y<0||x>=G.W||y>=G.H)return -1;
+  if(strict){const fx=p.x/U-x,fy=p.y/U-y;if(fx<.15||fx>.85||fy<.15||fy>.85)return -1}
+  const i=y*G.W+x;return G.cells.has(i)?i:-1;
+}
+function stepsTo(from,to){
+  const fx=from%G.W,fy=(from-fx)/G.W,tx=to%G.W,ty=(to-tx)/G.W;
+  if(fx!==tx&&fy!==ty)return null;
+  const dx=Math.sign(tx-fx),dy=Math.sign(ty-fy),out=[];
+  let x=fx,y=fy;while(x!==tx||y!==ty){x+=dx;y+=dy;out.push(y*G.W+x)}
+  return out;
+}
+function visit(c,down){
+  if(c<0||G.done)return;
+  const p=G.path,head=p[p.length-1];
+  if(c===head)return;
+  const k=p.indexOf(c);
+  if(k>=0){if(down||k>=p.length-4){p.length=k+1;update()}return}
+  const steps=stepsTo(head,c);if(!steps)return;
+  let moved=false;
+  for(const s of steps){if(!G.cells.has(s)||p.includes(s))break;p.push(s);moved=true}
+  if(moved){update();if(navigator.vibrate)navigator.vibrate(5);if(p.length===G.cells.size)win()}
+}
+function bindInput(){
+  let drawing=false;
+  svg.addEventListener('pointerdown',e=>{if(G.done)return;e.preventDefault();drawing=true;
+    try{svg.setPointerCapture(e.pointerId)}catch(_){}visit(cellAt(e,false),true)});
+  svg.addEventListener('pointermove',e=>{if(drawing)visit(cellAt(e,true),false)});
+  ['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,()=>drawing=false));
+}
+
+// ---------- tools ----------
+$('#undo').onclick=()=>{if(G&&!G.done&&G.path.length>1){G.path.pop();update()}};
+$('#restart').onclick=()=>{if(G&&!G.done){G.path=[G.start];update()}};
+$('#hint').onclick=()=>{
+  if(!G||G.done||BANK.hints<=0)return;
+  const p=G.path,s=G.sol;let k=0;
+  while(k<p.length&&p[k]===s[k])k++;
+  p.length=Math.max(1,k);
+  const added=[];for(let j=0;j<3&&p.length<s.length;j++){const c=s[p.length];p.push(c);added.push(c)}
+  BANK.hints--;G.hints++;saveBank();hud();update();
+  added.forEach(c=>{const t=tiles[c];t.classList.remove('hinted');void t.getBBox();t.classList.add('hinted')});
+  if(p.length===G.cells.size)win();
+};
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>b.dataset.mode==='daily'?newGame('daily'):newGame('free',b.dataset.tier));
+
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+
+function win(){
+  G.done=true;const t=Date.now()-G.start0;$('#timer').textContent=fmt(t);
+  svg.classList.add('won');
+  tiles.forEach((tl,i)=>{if(tl)tl.style.animationDelay=(G.path.indexOf(i)*14)+'ms'});
+  const key='fillmore-best-'+(G.mode==='daily'?'daily-'+todayKey():G.tierKey);
+  const best=store.get(key,null),isBest=G.hints===0&&(best==null||t<best);
+  if(isBest)store.set(key,t);
+  let bankMsg='';
+  const clean=G.hints===0,counts=clean&&!(G.mode==='daily'&&BANK.dailyDone===todayKey());
+  if(G.mode==='daily')BANK.dailyDone=todayKey();
+  if(counts){
+    BANK.clean++;
+    if(BANK.clean>=CLEAN_PER_HINT){BANK.clean=0;BANK.hints++;bankMsg='<b>+1 hint earned.</b> Three clean clears. You earned that one.'}
+    else bankMsg=`No hints used. ${BANK.clean}/${CLEAN_PER_HINT} toward your next hint.`;
+  }else if(!clean)bankMsg='You used a hint, so this one doesn\'t count toward the next.';
+  saveBank();hud();
+  const share=`Fillmore ${G.mode==='daily'?'Daily '+todayKey():G.tier} · ${G.cells.size} blocks · ${fmt(t)}${G.hints?` · ${G.hints} hint${G.hints>1?'s':''}`:' · no hints'}`;
+  setTimeout(()=>{
+    showOverlay(`
+      <div class="stamp">FILLED</div>
+      <p class="stats">${fmt(t)} &nbsp;·&nbsp; ${G.cells.size} blocks</p>
+      <p>${isBest?'New personal best. Frame it.':best!=null&&clean?'Best: '+fmt(best):'One stroke. Every block.'}</p>
+      ${bankMsg?`<p>${bankMsg}</p>`:''}
+      <div class="btns">
+        <button class="tool" id="share">Copy result</button>
+        <button class="tool" id="next">${G.mode==='daily'?'Free play':'Next puzzle'}</button>
+      </div>`);
+    $('#share').onclick=async e=>{try{await navigator.clipboard.writeText(share);e.target.textContent='Copied'}catch(_){e.target.textContent='Copy failed'}};
+    $('#next').onclick=()=>newGame('free',G.mode==='daily'?'extra':G.tierKey);
+  },G.path.length*14+550);
+}
+
+const last=store.get('fillmore-mode',null);
+if(last&&last.mode==='free')newGame('free',last.tier);else newGame('daily');
+</script>
+</body>
+</html>
