@@ -34,27 +34,28 @@ h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(34px,10vw,52px)
 .label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .timer{font-variant-numeric:tabular-nums;min-width:80px;text-align:right;font-size:18px}
 .board{--n:8;width:100%;aspect-ratio:1;display:grid;grid-template-columns:repeat(var(--n),1fr);
-  border:3px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--card);
+  gap:3px;border:4px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--ink);
   touch-action:none;user-select:none;box-shadow:6px 6px 0 var(--ink)}
 .board.loading{display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted)}
 .cell{appearance:none;border:0;margin:0;padding:0;position:relative;cursor:pointer;
-  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;color:var(--ink)}
-.cell.bt{border-top:3px solid var(--ink)} .cell.bl{border-left:3px solid var(--ink)}
-.cell.br{border-right:3px solid var(--ink)} .cell.bb{border-bottom:3px solid var(--ink)}
-.cell .x{font-weight:700;font-size:clamp(14px,4.5vw,24px);line-height:1}
-.cell[data-s="2"] .x{opacity:.35}
-.cell svg{width:78%;height:78%;animation:pop .28s cubic-bezier(.3,1.6,.5,1)}
+.cell svg.cat{width:78%;height:78%;animation:pop .28s cubic-bezier(.3,1.6,.5,1)}
+.cell svg.x{width:46%;height:46%}
 .cell.wrong{animation:shake .38s}
 .cell.wrong::after{content:"";position:absolute;inset:0;background:var(--heart);opacity:.45;animation:fade .6s forwards}
 @keyframes pop{from{transform:scale(.2) rotate(-20deg)}to{transform:none}}
 @keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
 @keyframes fade{to{opacity:0}}
-.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);
   border-radius:10px;padding:10px 4px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
 .tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
-.tool[aria-pressed="true"]{background:#e8b04b}
+.tool:disabled{opacity:.45;cursor:not-allowed;box-shadow:3px 3px 0 var(--ink);transform:none}
+.tool .count{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--card);font-size:13px}
+.progress{display:flex;align-items:center;justify-content:center;gap:8px;margin:-4px 0 0;font-size:13px;color:var(--muted)}
+.progress .dots{display:flex;gap:5px}
+.progress .dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink)}
+.progress .dot.on{background:var(--accent)}
 .hint-line{text-align:center;color:var(--muted);font-size:14px;margin:0}
 details{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:10px 14px}
 summary{font-weight:700;cursor:pointer}
@@ -102,10 +103,10 @@ footer{text-align:center;color:var(--muted);font-size:12px}
 
   <section class="tools">
     <button class="tool" id="undo">Undo</button>
-    <button class="tool" id="hint">Hint</button>
-    <button class="tool" id="autox" aria-pressed="true">Auto ✕</button>
-    <button class="tool" id="reset">Clear</button>
+    <button class="tool" id="hint">Hint<span class="count" id="hintCount">0</span></button>
+    <button class="tool" id="reset">Clear ✕</button>
   </section>
+  <p class="progress" id="progress"></p>
 
   <details>
     <summary>How to play</summary>
@@ -114,6 +115,7 @@ footer{text-align:center;color:var(--muted);font-size:12px}
       <li>Cats can't touch. Not side to side, not even corner to corner.</li>
       <li>Every puzzle has one solution, so it's all logic. Guess wrong and you lose a heart. Three strikes and you're out.</li>
       <li>Mark spots that can't be cats with ✕. On desktop, right-click drops a cat.</li>
+      <li>Hints are earned: every 3 boards you clear without a mistake banks you 1 hint.</li>
     </ul>
   </details>
 
@@ -220,12 +222,14 @@ function generate(n,seed){
 
 const $=s=>document.querySelector(s);
 const boardEl=$('#board');
-const PALETTE=['#e8b04b','#7fb6a8','#d98a6c','#a7c4e2','#c9b3d9','#e3d46d','#9fc27a','#f0a3a8','#c7b08f'];
-const CAT='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 34 L7 9 L14 16.5 Q20 14 26 16.5 L33 9 L33 34 Q20 38.5 7 34Z" fill="#1f1b16"/><circle cx="14.8" cy="24.5" r="2.4" fill="#f3ead8"/><circle cx="25.2" cy="24.5" r="2.4" fill="#f3ead8"/><circle cx="15.3" cy="24.8" r="1" fill="#1f1b16"/><circle cx="25.7" cy="24.8" r="1" fill="#1f1b16"/><path d="M18.4 29 L21.6 29 L20 30.8Z" fill="#e58f8f"/></svg>';
-const X='<span class="x">✕</span>';
+const PALETTE=['#e8b04b','#7fb6a8','#cf6f4b','#a7c4e2','#c9b3d9','#e3d46d','#9fc27a','#f0a3a8','#c7b08f'];
+const CAT='<svg class="cat" viewBox="0 0 40 40" aria-hidden="true"><path d="M7 34 L7 9 L14 16.5 Q20 14 26 16.5 L33 9 L33 34 Q20 38.5 7 34Z" fill="#1f1b16"/><circle cx="14.8" cy="24.5" r="2.4" fill="#f3ead8"/><circle cx="25.2" cy="24.5" r="2.4" fill="#f3ead8"/><circle cx="15.3" cy="24.8" r="1" fill="#1f1b16"/><circle cx="25.7" cy="24.8" r="1" fill="#1f1b16"/><path d="M18.4 29 L21.6 29 L20 30.8Z" fill="#e58f8f"/></svg>';
+const X='<svg class="x" viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 3.5L16.5 16.5M16.5 3.5L3.5 16.5" stroke="#1f1b16" stroke-width="4" stroke-linecap="round"/></svg>';
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-let S=null,timerId=null,AUTO=store.get('purr-autox',true);
+let S=null,timerId=null;
+const CLEAN_PER_HINT=3;
+let BANK=store.get('purr-bank',{hints:0,clean:0,dailyDone:null});
 
 function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
@@ -255,10 +259,6 @@ function render(){
   for(let i=0;i<n*n;i++){
     const y=Math.floor(i/n),x=i%n,d=document.createElement('button');
     d.className='cell';d.dataset.i=i;d.style.background=S.colors[reg[i]];
-    if(y>0&&reg[i-n]!==reg[i])d.classList.add('bt');
-    if(x>0&&reg[i-1]!==reg[i])d.classList.add('bl');
-    if(x<n-1&&reg[i+1]!==reg[i])d.classList.add('br');else if(x===n-1)d.style.borderRight='0';
-    if(y<n-1&&reg[i+n]!==reg[i])d.classList.add('bb');else if(y===n-1)d.style.borderBottom='0';
     d.setAttribute('aria-label',`row ${y+1} column ${x+1}`);
     boardEl.appendChild(d);
   }
@@ -267,14 +267,16 @@ function render(){
 function paintCell(i){
   const el=boardEl.children[i],s=S.cells[i];
   if(el.dataset.s===String(s))return;
-  el.dataset.s=s;el.innerHTML=s===3?CAT:(s===1||s===2)?X:'';
+  el.dataset.s=s;el.innerHTML=s===3?CAT:s===1?X:'';
 }
 function paint(){for(let i=0;i<S.n*S.n;i++)paintCell(i)}
 function hud(){
   $('#hearts').innerHTML=[0,1,2].map(k=>`<span class="${k<S.hearts?'':'lost'}">♥</span>`).join('');
   const d=new Date();
   $('#label').textContent=S.mode==='daily'?'Daily · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric'}):`Free play · ${S.n}×${S.n}`;
-  $('#autox').setAttribute('aria-pressed',AUTO);
+  $('#hintCount').textContent=BANK.hints;
+  $('#hint').disabled=BANK.hints<=0||S.done;
+  $('#progress').innerHTML=`<span class="dots">${[0,1,2].map(k=>`<span class="dot ${k<BANK.clean?'on':''}"></span>`).join('')}</span> clean clears toward your next hint`;
 }
 function syncModes(){
   document.querySelectorAll('.pill').forEach(b=>{
@@ -289,19 +291,12 @@ function startTimer(){
 }
 function pushHist(){S.history.push(S.cells.slice());if(S.history.length>200)S.history.shift()}
 
-function autoX(y,x){
-  const n=S.n,g=S.reg[y*n+x];
-  for(let j=0;j<n*n;j++){
-    if(S.cells[j]!==0)continue;
-    const yy=Math.floor(j/n),xx=j%n;
-    if(yy===y||xx===x||S.reg[j]===g||(Math.abs(yy-y)<=1&&Math.abs(xx-x)<=1))S.cells[j]=2;
-  }
-}
+function saveBank(){store.set('purr-bank',BANK)}
 function tryCat(i,free){
   if(S.done||S.cells[i]===3)return;
   const y=Math.floor(i/S.n),x=i%S.n;
   if(S.sol[y]===x){
-    pushHist();S.cells[i]=3;if(AUTO)autoX(y,x);paint();
+    pushHist();S.cells[i]=3;paintCell(i);
     if(S.cells.filter(v=>v===3).length===S.n)win();
   }else if(!free){
     S.hearts--;S.cells[i]=1;paintCell(i);hud();
@@ -343,14 +338,15 @@ boardEl.addEventListener('contextmenu',e=>{
 });
 
 $('#undo').onclick=()=>{if(S&&!S.done&&S.history.length){S.cells=S.history.pop();paint()}};
-$('#reset').onclick=()=>{if(S&&!S.done){pushHist();S.cells=S.cells.map(v=>v===3?3:0);if(AUTO)S.cells.forEach((v,i)=>{if(v===3)autoX(Math.floor(i/S.n),i%S.n)});paint()}};
-$('#autox').onclick=()=>{AUTO=!AUTO;store.set('purr-autox',AUTO);hud()};
+$('#reset').onclick=()=>{if(S&&!S.done){pushHist();S.cells=S.cells.map(v=>v===3?3:0);paint()}};
 $('#hint').onclick=()=>{
-  if(!S||S.done)return;
+  if(!S||S.done||BANK.hints<=0)return;
   const rows=[...Array(S.n).keys()].filter(y=>S.cells[y*S.n+S.sol[y]]!==3);
   if(!rows.length)return;
   const y=rows[Math.floor(Math.random()*rows.length)];
-  S.hints++;tryCat(y*S.n+S.sol[y],true);
+  BANK.hints--;saveBank();S.hints++;hud();
+  const el=boardEl.children[y*S.n+S.sol[y]];if(S.cells[y*S.n+S.sol[y]]===1)S.cells[y*S.n+S.sol[y]]=0;
+  tryCat(y*S.n+S.sol[y],true);
 };
 document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>b.dataset.mode==='daily'?newGame('daily'):newGame('free',+b.dataset.size));
 
@@ -363,12 +359,24 @@ function win(){
   const best=store.get(key,null);const isBest=S.hints===0&&(best==null||t<best);
   if(isBest)store.set(key,t);
   const hearts='♥'.repeat(S.hearts)+'♡'.repeat(3-S.hearts);
+  // hint economy: a mistake-free clear counts; daily only counts once per day
+  let bankMsg='';
+  const clean=S.hearts===3;
+  const counts=clean&&!(S.mode==='daily'&&BANK.dailyDone===todayKey());
+  if(S.mode==='daily')BANK.dailyDone=todayKey();
+  if(counts){
+    BANK.clean++;
+    if(BANK.clean>=CLEAN_PER_HINT){BANK.clean=0;BANK.hints++;bankMsg='<b>+1 hint earned.</b> Three clean clears. You earned that one.'}
+    else bankMsg=`Clean clear. ${BANK.clean}/${CLEAN_PER_HINT} toward your next hint.`;
+  }else if(!clean)bankMsg=`You took a hit, so this one doesn't count toward a hint.`;
+  saveBank();hud();
   const share=`Purrimeter ${S.mode==='daily'?'Daily '+todayKey():S.n+'×'+S.n} · ${fmt(t)} · ${hearts}${S.hints?` · ${S.hints} hint${S.hints>1?'s':''}`:''}`;
   setTimeout(()=>{
     showOverlay(`
     <div class="stamp">PURRFECT</div>
     <p class="stats">${fmt(t)} &nbsp; <span style="color:var(--heart)">${hearts}</span></p>
-    <p>${isBest?'New personal best. Frame it.':S.hints?`Solved with ${S.hints} hint${S.hints>1?'s':''}. Next one, no training wheels.`:'Best: '+fmt(best)}</p>
+    <p>${isBest?'New personal best. Frame it.':S.hints?`Solved with ${S.hints} hint${S.hints>1?'s':''}.`:'Best: '+fmt(best)}</p>
+    ${bankMsg?`<p>${bankMsg}</p>`:''}
     <div class="btns">
       <button class="tool" id="share">Copy result</button>
       <button class="tool" id="next">${S.mode==='daily'?'Free play':'Next puzzle'}</button>
