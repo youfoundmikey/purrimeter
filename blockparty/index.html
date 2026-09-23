@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Block Party · Arkade</title>
 <meta name="description" content="Drop blocks, clear lines, don't get boxed in.">
 <meta name="theme-color" content="#f3ead8">
@@ -79,18 +85,47 @@ details ul{padding-left:18px;margin:8px 0 0;line-height:1.5}
 .card .stats{font-weight:700;font-size:18px}
 .card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 footer{text-align:center;color:var(--muted);font-size:12px}
-.home{align-self:flex-start;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;background:var(--card);box-shadow:2px 2px 0 var(--ink);margin-bottom:-6px}
-.home:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+
+/* ===== app mode: one fixed screen, no page scroll ===== */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stripe{flex:none;height:8px}
+.app{flex:1;min-height:0;width:100%;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+details,footer{display:none!important}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-size:clamp(24px,7.6vw,38px);margin:0;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer;align-self:center}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.pill{padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap}
+.modes{gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center}
+.overlay .card{max-height:calc(100dvh - 32px);overflow:auto;-webkit-overflow-scrolling:touch}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul,.mbody ol{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+@media (hover:none){.tool:hover,.pill:hover{background:inherit}}
+.stage>.board{width:min(100cqw - 10px,100cqh - 10px);aspect-ratio:1}
+.tray{min-height:0;height:clamp(84px,14dvh,118px)}
+.slot{min-height:0;height:100%}
+.piece.dragging{left:0;top:0;will-change:transform}
+.status{min-height:1.3em;font-size:15px}
+.hud .stat .v{font-size:21px}
 </style>
 </head>
 <body>
 <div class="stripe"></div>
 <main class="app">
-  <a class="home" href="../">&larr; Arkade</a>
-  <header>
-    <h1>BLOCK PARTY</h1>
-    <p class="tag">clear lines. don't get boxed in.</p>
-  </header>
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>BLOCK PARTY</h1>
+    <p class="tag">clear lines. don't get boxed in.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
 
   <nav class="modes" aria-label="Mode">
     <button class="pill" data-mode="classic">Classic</button>
@@ -103,7 +138,7 @@ footer{text-align:center;color:var(--muted);font-size:12px}
     <div class="stat"><span class="k">All time</span><span class="v" id="best">0</span></div>
   </section>
 
-  <div class="board" id="board"></div>
+  <div class="stage"><div class="board" id="board"></div></div>
   <p class="status" id="status"></p>
 
   <section class="tray" id="tray">
@@ -234,27 +269,29 @@ function startDrag(e,k,el){
   const float=pieceEl(p,k,size);float.classList.add('dragging');document.body.appendChild(float);
   el.style.visibility='hidden';
   const touch=e.pointerType!=='mouse';
-  drag={k,p,src:el,float,lift:touch?Math.max(60,size*1.6):0,w:0,h:0,pos:null};
+  drag={k,p,src:el,float,lift:touch?Math.max(60,size*1.6):0,w:0,h:0,pos:null,key:null,rect:boardEl.getBoundingClientRect(),pitch:size+3};
   const r=float.getBoundingClientRect();drag.w=r.width;drag.h=r.height;
   moveDrag(e);
-  addEventListener('pointermove',moveDrag);addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);
+  addEventListener('pointermove',moveDrag,{passive:true});addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);
 }
 function moveDrag(e){
   if(!drag)return;
   const x=e.clientX-drag.w/2,y=e.clientY-drag.h/2-drag.lift;
-  drag.float.style.left=x+'px';drag.float.style.top=y+'px';
-  const b=boardEl.getBoundingClientRect(),pitch=cellPx()+3;
+  drag.float.style.transform=`translate3d(${x}px,${y}px,0)`;
+  const b=drag.rect,pitch=drag.pitch;
   const c0=Math.round((x-(b.left+4))/pitch),r0=Math.round((y-(b.top+4))/pitch);
-  const ok=fits(S.grid,drag.p.cells,r0,c0);
-  drag.pos=ok?[r0,c0]:null;
-  preview();
+  const pos=fits(S.grid,drag.p.cells,r0,c0)?[r0,c0]:null,key=pos?pos.join():'';
+  if(key===drag.key)return;               // only repaint the board when the landing spot changes
+  drag.key=key;drag.pos=pos;preview();
 }
+let marked=[];
 function preview(){
-  cellEls.forEach((el,i)=>{el.classList.remove('ghost','willclear');if(!S.grid[i])el.style.setProperty('--c','')});
+  for(const i of marked){const el=cellEls[i];el.classList.remove('ghost','willclear');if(!S.grid[i])el.style.setProperty('--c','')}
+  marked=[];
   if(!drag||!drag.pos)return;
   const [r0,c0]=drag.pos,g=S.grid.slice();
-  for(const [r,c] of drag.p.cells){const i=(r0+r)*N+c0+c;g[i]=drag.p.color;cellEls[i].classList.add('ghost');cellEls[i].style.setProperty('--c',drag.p.color)}
-  for(const i of clearedCells(g))cellEls[i].classList.add('willclear');
+  for(const [r,c] of drag.p.cells){const i=(r0+r)*N+c0+c;g[i]=drag.p.color;cellEls[i].classList.add('ghost');cellEls[i].style.setProperty('--c',drag.p.color);marked.push(i)}
+  for(const i of clearedCells(g)){cellEls[i].classList.add('willclear');marked.push(i)}
 }
 function endDrag(){
   if(!drag)return;
@@ -327,6 +364,23 @@ function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.rem
 function hideOverlay(){$('#overlay').classList.add('hidden')}
 
 if(!S||S.over||!S.grid)newGame((S&&S.mode)||'classic');else{renderAll()}
+
+// ===== app mode helpers =====
+(function(){
+  const btn=document.getElementById('infoBtn');
+  if(btn)btn.onclick=()=>{
+    const secs=[...document.querySelectorAll('details')].map(d=>{
+      const list=d.querySelector('ul,ol');if(!list||!list.children.length)return '';
+      return `<h3>${d.querySelector('summary').textContent}</h3>${list.outerHTML}`}).join('');
+    const rec=document.getElementById('record');
+    showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec.textContent}</p>`:''}${secs}</div><div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+    document.getElementById('infoClose').onclick=hideOverlay;
+  };
+  // no pinch / double-tap zoom, no rubber-band page drag
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+  document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+})();
 </script>
 </body>
 </html>

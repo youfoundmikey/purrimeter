@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Purrimeter · Arkade</title>
 <meta name="description" content="A cat logic puzzle. One cat per row, column and color. No touching. Not even diagonally.">
 <meta name="theme-color" content="#f3ead8">
@@ -73,18 +79,43 @@ details ul{padding-left:18px;margin:8px 0 0;line-height:1.5}
 .card .stats{font-weight:700;font-size:18px}
 .card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 footer{text-align:center;color:var(--muted);font-size:12px}
-.home{align-self:flex-start;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;background:var(--card);box-shadow:2px 2px 0 var(--ink);margin-bottom:-6px}
-.home:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+
+/* ===== app mode: one fixed screen, no page scroll ===== */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stripe{flex:none;height:8px}
+.app{flex:1;min-height:0;width:100%;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+details,footer{display:none!important}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-size:clamp(24px,7.6vw,38px);margin:0;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer;align-self:center}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.pill{padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap}
+.modes{gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.stage{flex:1 1 auto!important;min-height:0;container-type:size;display:flex;align-items:center;justify-content:center}
+.overlay .card{max-height:calc(100dvh - 32px);overflow:auto;-webkit-overflow-scrolling:touch}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul,.mbody ol{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+@media (hover:none){.tool:hover,.pill:hover{background:inherit}}
+.stage>.board{width:min(100cqw - 10px,100cqh - 10px);aspect-ratio:1}
+.hint-line{font-size:13px}
 </style>
 </head>
 <body>
 <div class="stripe"></div>
 <main class="app">
-  <a class="home" href="../">&larr; Arkade</a>
-  <header>
-    <h1>PURRIMETER</h1>
-    <p class="tag">cats need personal space.</p>
-  </header>
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>PURRIMETER</h1>
+    <p class="tag">cats need personal space.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
 
   <nav class="modes" aria-label="Puzzle mode">
     <button class="pill" data-mode="daily">Daily</button>
@@ -101,7 +132,7 @@ footer{text-align:center;color:var(--muted);font-size:12px}
     <div class="timer" id="timer">0:00</div>
   </section>
 
-  <div id="board" class="board loading">herding cats…</div>
+  <div class="stage"><div id="board" class="board loading">herding cats…</div></div>
 
   <p class="hint-line">Tap = ✕ &nbsp;·&nbsp; Double-tap = 🐈 &nbsp;·&nbsp; Drag to paint ✕</p>
 
@@ -404,6 +435,23 @@ function lose(){
 
 const last=store.get('purr-mode',null);
 if(last&&last.mode==='free')newGame('free',last.size);else newGame('daily');
+
+// ===== app mode helpers =====
+(function(){
+  const btn=document.getElementById('infoBtn');
+  if(btn)btn.onclick=()=>{
+    const secs=[...document.querySelectorAll('details')].map(d=>{
+      const list=d.querySelector('ul,ol');if(!list||!list.children.length)return '';
+      return `<h3>${d.querySelector('summary').textContent}</h3>${list.outerHTML}`}).join('');
+    const rec=document.getElementById('record');
+    showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec.textContent}</p>`:''}${secs}</div><div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+    document.getElementById('infoClose').onclick=hideOverlay;
+  };
+  // no pinch / double-tap zoom, no rubber-band page drag
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+  document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+})();
 </script>
 </body>
 </html>

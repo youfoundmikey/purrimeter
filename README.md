@@ -11,3 +11,5 @@ Four puzzle games, one arcade. No build step: plain static HTML that Vercel serv
 
 The home page (`index.html`) links to each game, and each game has a back button to the arcade.
 Progress, best scores and records are saved in the browser.
+
+On a phone, open it in Safari (or Chrome), tap Share → Add to Home Screen, and it launches full-screen like a native app.

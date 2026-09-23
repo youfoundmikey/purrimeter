@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Arkade</title>
 <meta name="description" content="Four puzzle games, one arcade. Purrimeter, Fillmore, Block Party and Face Off.">
 <meta name="theme-color" content="#f3ead8">
@@ -29,11 +35,10 @@ h1 span:nth-child(5){animation-delay:.48s}h1 span:nth-child(6){animation-delay:.
 .games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .game{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);background:var(--card);border:3px solid var(--ink);
   border-radius:14px;box-shadow:5px 5px 0 var(--ink);overflow:hidden;transition:transform .12s,box-shadow .12s}
-.game:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+@media (hover:hover){.game:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}.game:hover .art svg{animation:tilt .5s ease-in-out}}
 .game:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
 .art{aspect-ratio:1.25;border-bottom:3px solid var(--ink);display:flex;align-items:center;justify-content:center}
 .art svg{width:74%;height:74%;overflow:visible}
-.game:hover .art svg{animation:tilt .5s ease-in-out}
 @keyframes tilt{30%{transform:rotate(-4deg) scale(1.04)}70%{transform:rotate(3deg) scale(1.04)}}
 .info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
 .name{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(17px,4.8vw,22px);letter-spacing:.03em;line-height:1.05}
@@ -42,6 +47,20 @@ h1 span:nth-child(5){animation-delay:.48s}h1 span:nth-child(6){animation-delay:.
 .stat.fresh{color:var(--accent)}
 .note{text-align:center;color:var(--muted);font-size:13px;margin:0}
 footer{text-align:center;color:var(--muted);font-size:12px}
+
+/* ===== app mode ===== */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stripe{flex:none;height:8px}
+.app{flex:1;min-height:0;width:100%;gap:14px;padding:clamp(12px,3dvh,26px) max(14px,env(safe-area-inset-left)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>header,.app>.note,.app>footer{flex:none}
+h1{font-size:clamp(48px,min(15vw,9dvh),84px)}
+.games{flex:1;min-height:0;grid-template-rows:repeat(2,minmax(0,1fr))}
+.game{min-height:0}
+.art{aspect-ratio:auto;flex:1;min-height:0}
+.info{flex:none}
+footer{display:none}
+@media (max-height:720px){.pitch{display:none}.tag{font-size:15px}}
 </style>
 </head>
 <body>
@@ -165,6 +184,8 @@ set('st-block',best?`Best ${best.toLocaleString()}`:'No score yet',!best);
 
 const rec=get('fo-record',{}),w=(rec.hardW||0)+(rec.easyW||0),l=(rec.hardL||0)+(rec.easyL||0);
 set('st-face',w+l?`Record ${w}–${l}`:'The bot is waiting',!(w+l));
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 </script>
 </body>
 </html>
