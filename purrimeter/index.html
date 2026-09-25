@@ -358,14 +358,24 @@ boardEl.addEventListener('pointerdown',e=>{
   pushHist();
   const val=S.cells[i]===0?1:0;
   S.cells[i]=val;paintCell(i);
-  painting={val,seen:new Set([i])};
+  painting={val,seen:new Set([i]),rect:boardEl.getBoundingClientRect(),x:e.clientX,y:e.clientY};
   try{boardEl.setPointerCapture(e.pointerId)}catch(_){}
 });
+function paintAt(x,y){
+  const r=painting.rect,pitch=(r.width-8)/S.n,cx=Math.floor((x-r.left-4)/pitch),cy=Math.floor((y-r.top-4)/pitch);
+  if(cx<0||cy<0||cx>=S.n||cy>=S.n)return;
+  const i=cy*S.n+cx;if(painting.seen.has(i)||S.cells[i]===3)return;
+  painting.seen.add(i);lastTap={i:-1,t:0};S.cells[i]=painting.val;paintCell(i);
+}
 boardEl.addEventListener('pointermove',e=>{
   if(!painting)return;
-  const el=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('.cell');if(!el)return;
-  const i=+el.dataset.i;if(painting.seen.has(i)||S.cells[i]===3)return;
-  painting.seen.add(i);lastTap={i:-1,t:0};S.cells[i]=painting.val;paintCell(i);
+  // replay every raw sample and fill the gaps so a fast swipe doesn't skip cells
+  const evs=e.getCoalescedEvents?e.getCoalescedEvents():[],pitch=(painting.rect.width-8)/S.n;
+  for(const ce of evs.length?evs:[e]){
+    const dx=ce.clientX-painting.x,dy=ce.clientY-painting.y,n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/(pitch*.3)));
+    for(let k=1;k<=n;k++)paintAt(painting.x+dx*k/n,painting.y+dy*k/n);
+    painting.x=ce.clientX;painting.y=ce.clientY;
+  }
 });
 ['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>painting=null));
 boardEl.addEventListener('contextmenu',e=>{

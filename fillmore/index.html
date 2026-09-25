@@ -237,7 +237,7 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CLEAN_PER_HINT=3;
 let BANK=store.get('fillmore-bank',{hints:3,clean:0,dailyDone:null});
-let G=null,svg=null,tiles=[],line=null,headDot=null,timerId=null;
+let G=null,svg=null,tiles=[],line=null,tail=null,headDot=null,timerId=null;
 
 function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
@@ -278,6 +278,7 @@ function build(){
     tiles.push(rect(field,x+4,y+4,U-8,U-8,null,'t'));
   }
   line=document.createElementNS(NS,'polyline');line.setAttribute('class','line');line.setAttribute('stroke-width',U*.26);svg.appendChild(line);
+  tail=document.createElementNS(NS,'line');tail.setAttribute('class','line');tail.setAttribute('stroke-width',U*.26);tail.setAttribute('opacity','.3');tail.setAttribute('visibility','hidden');svg.appendChild(tail);
   const [sx,sy]=center(G.start);
   const dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',sx);dot.setAttribute('cy',sy);dot.setAttribute('r',U*.3);dot.setAttribute('fill','#1f1b16');svg.appendChild(dot);
   headDot=document.createElementNS(NS,'circle');headDot.setAttribute('r',U*.09);headDot.setAttribute('fill','#fbf6ea');svg.appendChild(headDot);
@@ -319,9 +320,8 @@ function startTimer(){
 }
 
 // ---------- input ----------
-function cellAt(e,strict){
-  const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
-  const p=pt.matrixTransform(G.inv||svg.getScreenCTM().inverse());
+function toSvg(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(G.inv||svg.getScreenCTM().inverse())}
+function cellAt(p,strict){
   const x=Math.floor(p.x/U),y=Math.floor(p.y/U);
   if(x<0||y<0||x>=G.W||y>=G.H)return -1;
   if(strict){const fx=p.x/U-x,fy=p.y/U-y;if(fx<.15||fx>.85||fy<.15||fy>.85)return -1}
@@ -334,23 +334,50 @@ function stepsTo(from,to){
   let x=fx,y=fy;while(x!==tx||y!==ty){x+=dx;y+=dy;out.push(y*G.W+x)}
   return out;
 }
-function visit(c,down){
-  if(c<0||G.done)return;
+// returns 1 if the path grew, -1 if it was cut back, 0 if nothing changed. The caller repaints once per batch.
+function visit(c,down,pt){
+  if(c<0||G.done)return 0;
   const p=G.path,head=p[p.length-1];
-  if(c===head)return;
+  if(c===head)return 0;
   const k=p.indexOf(c);
-  if(k>=0){if(down||k>=p.length-4){p.length=k+1;update()}return}
-  const steps=stepsTo(head,c);if(!steps)return;
-  let moved=false;
-  for(const s of steps){if(!G.cells.has(s)||p.includes(s))break;p.push(s);moved=true}
-  if(moved){update();if(navigator.vibrate)navigator.vibrate(5);if(p.length===G.cells.size)win()}
+  if(k>=0){if(down||k>=p.length-4){p.length=k+1;return -1}return 0}
+  let steps=stepsTo(head,c);
+  if(!steps&&pt){ // cut a corner diagonally: route through whichever side cell the finger was nearer
+    const hx=head%G.W,hy=(head-hx)/G.W,cx=c%G.W,cy=(c-cx)/G.W;
+    if(Math.abs(cx-hx)===1&&Math.abs(cy-hy)===1){
+      const via=[hy*G.W+cx,cy*G.W+hx].filter(v=>G.cells.has(v)&&!p.includes(v))
+        .sort((a,b)=>{const d=v=>{const [x,y]=center(v);return (x-pt.x)**2+(y-pt.y)**2};return d(a)-d(b)});
+      if(via.length)steps=[via[0],c];
+    }
+  }
+  if(!steps)return 0;
+  let moved=0;
+  for(const s of steps){if(!G.cells.has(s)||p.includes(s))break;p.push(s);moved=1}
+  return moved;
+}
+// a short rubber band from the head toward the finger, so the line reacts between cells
+function stretch(p){
+  if(!p||G.done){tail.setAttribute('visibility','hidden');return}
+  const [hx,hy]=center(G.path[G.path.length-1]),dx=p.x-hx,dy=p.y-hy,d=Math.hypot(dx,dy),k=d>U*.45?U*.45/d:1;
+  tail.setAttribute('x1',hx);tail.setAttribute('y1',hy);tail.setAttribute('x2',hx+dx*k);tail.setAttribute('y2',hy+dy*k);tail.setAttribute('visibility','visible');
 }
 function bindInput(){
-  let drawing=false;
+  let drawing=false,last=null;
+  const settle=grew=>{if(!grew)return;update();if(grew>0&&navigator.vibrate)navigator.vibrate(5);if(G.path.length===G.cells.size)win()};
   svg.addEventListener('pointerdown',e=>{if(G.done)return;e.preventDefault();drawing=true;G.inv=svg.getScreenCTM().inverse();
-    try{svg.setPointerCapture(e.pointerId)}catch(_){}visit(cellAt(e,false),true)});
-  svg.addEventListener('pointermove',e=>{if(drawing)visit(cellAt(e,true),false)});
-  ['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,()=>drawing=false));
+    try{svg.setPointerCapture(e.pointerId)}catch(_){}last=toSvg(e);settle(visit(cellAt(last,false),true));stretch(last)});
+  svg.addEventListener('pointermove',e=>{
+    if(!drawing||G.done)return;
+    // a fast swipe crosses several cells between frames: replay every raw sample and fill the gaps in small steps
+    const evs=e.getCoalescedEvents?e.getCoalescedEvents():[];let grew=0;
+    for(const ce of evs.length?evs:[e]){
+      const q=toSvg(ce),dx=q.x-last.x,dy=q.y-last.y,n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/(U*.2)));
+      for(let k=1;k<=n&&G.path.length<G.cells.size;k++){const pt={x:last.x+dx*k/n,y:last.y+dy*k/n},r=visit(cellAt(pt,true),false,pt);if(r)grew=grew>0?grew:r}
+      last=q;if(G.path.length===G.cells.size)break;
+    }
+    settle(grew);stretch(last);
+  });
+  ['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,()=>{drawing=false;last=null;stretch(null)}));
 }
 
 // ---------- tools ----------
