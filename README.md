@@ -1,6 +1,6 @@
 # Arkade
 
-Eight games, one arcade. No build step: plain static HTML that Vercel serves as-is.
+Nine games, one arcade. No build step: plain static HTML that Vercel serves as-is.
 
 | Game | Folder | What it is |
 |---|---|---|
@@ -12,6 +12,7 @@ Eight games, one arcade. No build step: plain static HTML that Vercel serves as-
 | Domino | `/domino` | Draw dominoes against a bot, first to 50. |
 | Ludo | `/ludo` | Race 1 or 3 bots home. Captures, safe stars, extra rolls. |
 | Minesweeper | `/minesweeper` | Three sizes, safe first tap, long-press to flag. |
+| Pool | `/pool` | 8-ball against an Easy or Hard bot, or two players on one phone. |
 
 The home page (`index.html`) links to each game, and each game has a back button to the arcade.
 Progress, best scores and records are saved in the browser.

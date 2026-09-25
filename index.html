@@ -10,7 +10,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Arkade</title>
-<meta name="description" content="Eight games, one arcade. Purrimeter, Fillmore, Block Party, Face Off, Darts, Domino, Ludo and Minesweeper.">
+<meta name="description" content="Nine games, one arcade. Purrimeter, Fillmore, Block Party, Face Off, Darts, Domino, Ludo, Minesweeper and Pool.">
 <meta name="theme-color" content="#f3ead8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%231f1b16'/%3E%3Crect x='6' y='6' width='13' height='13' rx='2' fill='%23e8b04b'/%3E%3Crect x='21' y='6' width='13' height='13' rx='2' fill='%237fb6a8'/%3E%3Crect x='6' y='21' width='13' height='13' rx='2' fill='%23e07e57'/%3E%3Crect x='21' y='21' width='13' height='13' rx='2' fill='%238fb3dc'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,6 +76,16 @@ h1{font-size:clamp(38px,min(12.5vw,6.6dvh),72px)}
 .stat{padding-top:1px;font-size:10.5px;letter-spacing:.06em}
 .note{display:none}
 @media (min-height:900px){.pitch{display:block;font-size:12.5px}}
+
+/* ===== 9-game grid ===== */
+.games{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:9px}
+.game{box-shadow:3px 3px 0 var(--ink)}
+.art svg{height:80%;max-width:80%}
+.info{padding:4px 7px 6px}
+.name{font-size:clamp(10px,2.75vw,17px);letter-spacing:0;white-space:nowrap}
+.stat{font-size:clamp(8.5px,2.4vw,10.5px);letter-spacing:.03em;line-height:1.2}
+.pitch{display:none}
+@media (min-height:900px) and (min-width:500px){.pitch{display:block;font-size:12px}}
 </style>
 </head>
 <body>
@@ -83,7 +93,7 @@ h1{font-size:clamp(38px,min(12.5vw,6.6dvh),72px)}
 <main class="app">
   <header>
     <h1 aria-label="Arkade"><span>A</span><span>R</span><span>K</span><span>A</span><span>D</span><span>E</span></h1>
-    <p class="tag">eight games. zero ads. pick your poison.</p>
+    <p class="tag">nine games. zero ads. pick your poison.</p>
   </header>
 
   <section class="games">
@@ -237,6 +247,25 @@ h1{font-size:clamp(38px,min(12.5vw,6.6dvh),72px)}
       </div>
       <div class="info"><span class="name">MINESWEEPER</span><span class="pitch">Safe first tap. Long-press to flag.</span><span class="stat" id="st-mines"></span></div>
     </a>
+    <a class="game" href="pool/">
+      <div class="art" style="background:#d5e7dc">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <rect x="10" y="10" width="104" height="104" rx="12" fill="#1f1b16"/>
+          <rect x="6" y="6" width="104" height="104" rx="12" fill="#6b4428" stroke="#1f1b16" stroke-width="3.5"/>
+          <rect x="17" y="17" width="82" height="82" rx="3" fill="#3e8a70" stroke="#1f1b16" stroke-width="2.5"/>
+          <g fill="#1f1b16"><circle cx="18" cy="18" r="8"/><circle cx="98" cy="18" r="8"/><circle cx="18" cy="98" r="8"/><circle cx="98" cy="98" r="8"/></g>
+          <g stroke="#1f1b16" stroke-width="2.5">
+            <circle cx="48" cy="46" r="11" fill="#1f1b16"/>
+            <g><circle cx="72" cy="40" r="11" fill="#fbf6ea"/><path d="M61.5 36 H82.5 V44 H61.5Z" fill="#d9452b" stroke="none"/><circle cx="72" cy="40" r="11" fill="none"/></g>
+            <circle cx="62" cy="80" r="11" fill="#fbf6ea"/>
+          </g>
+          <circle cx="48" cy="46" r="5" fill="#fbf6ea"/><text x="48" y="49.5" text-anchor="middle" font-family="Archivo Black,Impact,sans-serif" font-size="8" fill="#1f1b16">8</text>
+          <circle cx="58.5" cy="76.5" r="2.6" fill="#fff" opacity=".8"/>
+          <g transform="translate(62 80) rotate(52)"><rect x="15" y="-3" width="62" height="6" rx="3" fill="#e0b77a" stroke="#1f1b16" stroke-width="2.5"/><rect x="15" y="-3" width="6" height="6" fill="#8fb3dc" stroke="#1f1b16" stroke-width="2"/></g>
+        </svg>
+      </div>
+      <div class="info"><span class="name">POOL</span><span class="pitch">8-ball against a bot, or pass the phone.</span><span class="stat" id="st-pool"></span></div>
+    </a>
   </section>
 
   <p class="note">Progress, best scores and records save on this device.</p>
@@ -269,6 +298,8 @@ const lr=get('ld-record',{});
 set('st-ludo',(lr.w||0)+(lr.l||0)?`Wins ${lr.w||0} · losses ${lr.l||0}`:'Tokens in the yard',!((lr.w||0)+(lr.l||0)));
 const mb=['hard','medium','easy'].map(k=>[k,get('ms-best-'+k,null)]).find(x=>x[1]);
 set('st-mines',mb?`Best ${mb[0]} ${fmt(mb[1])}`:'No clears yet',!mb);
+const pr=get('pl-record',{}),pw=(pr.easyW||0)+(pr.hardW||0),pl=(pr.easyL||0)+(pr.hardL||0);
+set('st-pool',pw+pl?`Record ${pw}–${pl}`:"Rack 'em up",!(pw+pl));
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 </script>
