@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>2048 · Arkade</title>
+<meta name="description" content="Swipe, merge, reach 2048.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23e8b04b'/%3E%3Ctext x='20' y='26' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='13' fill='%231f1b16'%3E2048%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b;--yes:#5f9e4c;--no:#d9452b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{flex:none;height:8px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{flex:1;min-height:0;width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right))}
+.app>*{flex:none}
+header.top{display:flex;align-items:center;gap:10px;text-align:center}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(24px,7.6vw,38px);letter-spacing:.04em;margin:0;line-height:1;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0;color:var(--muted);font-style:italic}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700;gap:8px}
+.stat{min-width:70px}
+.stat:last-child{text-align:right}
+.stat .k{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:24px;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.stage{flex:1 1 auto!important;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;touch-action:none}
+.tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:10px;
+  padding:10px 6px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.tool.primary{background:var(--ink);color:var(--card)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.tool .badge{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--card);font-size:13px}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:22px 18px 18px;max-width:380px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink);max-height:calc(100dvh - 32px);overflow:auto}
+.card h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:24px;letter-spacing:.03em}
+.card p{margin:12px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card .btns .tool{padding:10px 16px}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+.stamp.good{color:var(--yes);border-color:var(--yes)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+
+/* ===== 2048 ===== */
+#board{position:relative;background:var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--ink);flex:none}
+.slot{position:absolute;border-radius:8px;background:#3a332b}
+.tile{position:absolute;left:0;top:0;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:"Archivo Black",Impact,sans-serif;line-height:1;color:var(--ink);will-change:transform;
+  transition:transform .11s ease-in-out;box-shadow:inset 0 -5px 0 rgba(0,0,0,.16),inset 0 4px 0 rgba(255,255,255,.3)}
+.tile span{display:block}
+.tile.new span{animation:appear .16s ease-out .08s both}
+.tile.pop span{animation:pop .18s ease-out}
+@keyframes appear{from{transform:scale(0)}to{transform:none}}
+@keyframes pop{50%{transform:scale(1.22)}}
+.tile.dead{z-index:0}.tile{z-index:1}
+.gain{position:absolute;left:50%;top:-4px;font-weight:700;color:var(--accent);animation:gain .7s ease-out forwards;pointer-events:none}
+@keyframes gain{from{transform:translate(-50%,0);opacity:1}to{transform:translate(-50%,-26px);opacity:0}}
+.hint{text-align:center;color:var(--muted);font-size:13px;margin:0}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>2048</h1><p class="tag">swipe. merge. don't panic.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
+  <section class="hud">
+    <div class="stat" style="position:relative"><span class="k">Score</span><span class="v" id="score">0</span></div>
+    <div class="label" id="label">Get to 2048</div>
+    <div class="stat"><span class="k">Best</span><span class="v" id="best">0</span></div>
+  </section>
+  <div class="stage" id="stage"><div id="board"></div></div>
+  <p class="hint">Swipe anywhere on the board</p>
+  <section class="tools">
+    <button class="tool" id="undo">Undo<span class="badge" id="undoCount">3</span></button>
+    <button class="tool" id="newBtn">New game</button>
+  </section>
+</main>
+<template id="howto"><ul>
+  <li><b>Swipe</b> up, down, left or right. Every tile slides as far as it can.</li>
+  <li>Two tiles with the same number merge into one, and you score the new value.</li>
+  <li>A new 2 (or sometimes a 4) drops in after every move.</li>
+  <li>Make a <b>2048</b> tile to win, then keep going for a bigger score if you like.</li>
+  <li>You get <b>3 undos</b> per game. It's over when the board is full and nothing can merge.</li>
+  <li>On a keyboard, the arrow keys work too.</li>
+</ul>
+</template>
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+function recordLine(){return typeof RECORD_LINE==='function'?RECORD_LINE():''}
+$('#infoBtn').onclick=()=>{
+  const rec=recordLine();
+  showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec}</p>`:''}<h3>How to play</h3>${$('#howto').innerHTML}</div>
+    <div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+  $('#infoClose').onclick=hideOverlay;
+};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+
+/* ===== 2048 ===== */
+const N=4;
+const COLORS={2:'#fbf6ea',4:'#f2e3c1',8:'#e8b04b',16:'#e0914b',32:'#e07e57',64:'#d9452b',128:'#9fc27a',256:'#7fb6a8',512:'#8fb3dc',1024:'#6f8fd0',2048:'#b89ad4'};
+const RECORD_LINE=()=>{const b=store.get('g2048-best',0),t=store.get('g2048-top',0);return `Best score ${b.toLocaleString()} · biggest tile ${t||'–'}`};
+let S=null,nextId=1,cs=0,gap=0;
+const els=new Map();
+const boardEl=$('#board');
+
+function empties(){const taken=new Set(S.tiles.map(t=>t.r*N+t.c));const out=[];for(let i=0;i<N*N;i++)if(!taken.has(i))out.push(i);return out}
+function spawn(){
+  const e=empties();if(!e.length)return;
+  const i=e[Math.floor(Math.random()*e.length)];
+  S.tiles.push({id:nextId++,v:Math.random()<.9?2:4,r:Math.floor(i/N),c:i%N,fresh:true});
+}
+function newGame(){
+  hideOverlay();
+  S={tiles:[],score:0,over:false,won:false,undos:3,hist:[]};
+  for(const el of els.values())el.remove();els.clear();
+  spawn();spawn();render();hud();
+}
+function snapshot(){return {tiles:S.tiles.map(t=>({id:t.id,v:t.v,r:t.r,c:t.c})),score:S.score,won:S.won}}
+function move(dir){
+  if(!S||S.over||!$('#overlay').classList.contains('hidden'))return;
+  const [dr,dc]=[[-1,0],[0,1],[1,0],[0,-1]][dir];
+  const before=snapshot();
+  const at=new Map();for(const t of S.tiles)at.set(t.r*N+t.c,t);
+  const rows=[...Array(N).keys()],cols=[...Array(N).keys()];
+  if(dr===1)rows.reverse();if(dc===1)cols.reverse();
+  let moved=false,gain=0;const dead=[],merged=new Set();
+  for(const r of rows)for(const c of cols){
+    const t=at.get(r*N+c);if(!t)continue;
+    let nr=r,nc=c;
+    while(true){const rr=nr+dr,cc=nc+dc;if(rr<0||rr>=N||cc<0||cc>=N||at.has(rr*N+cc))break;nr=rr;nc=cc}
+    const rr=nr+dr,cc=nc+dc,o=at.get(rr*N+cc);
+    if(o&&o.v===t.v&&!merged.has(o.id)){
+      at.delete(r*N+c);t.r=rr;t.c=cc;dead.push(t);merged.add(o.id);o.v*=2;o.pop=true;gain+=o.v;moved=true;continue;
+    }
+    if(nr!==r||nc!==c){at.delete(r*N+c);t.r=nr;t.c=nc;at.set(nr*N+nc,t);moved=true}
+  }
+  if(!moved)return;
+  S.hist.push(before);if(S.hist.length>20)S.hist.shift();
+  S.score+=gain;
+  // slide first, then swap in merged values and drop the new tile
+  const deadIds=new Set(dead.map(t=>t.id));
+  S.tiles=S.tiles.filter(t=>!deadIds.has(t.id));
+  for(const t of S.tiles)t.fresh=false;
+  spawn();
+  render(dead);hud(gain);
+  if(!S.won&&S.tiles.some(t=>t.v>=2048)){S.won=true;setTimeout(winCard,350)}
+  else if(!canMove()){S.over=true;setTimeout(overCard,450)}
+}
+function canMove(){
+  if(S.tiles.length<N*N)return true;
+  const g=new Map(S.tiles.map(t=>[t.r*N+t.c,t.v]));
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=g.get(r*N+c);if(g.get(r*N+c+1)===v&&c<N-1||g.get((r+1)*N+c)===v&&r<N-1)return true}
+  return false;
+}
+function fit(){
+  const st=$('#stage'),size=Math.floor(Math.min(st.clientWidth-8,st.clientHeight-8,480));
+  gap=Math.max(6,Math.round(size*.025));cs=(size-gap*(N+1))/N;
+  boardEl.style.width=boardEl.style.height=size+'px';
+  boardEl.querySelectorAll('.slot').forEach(s=>s.remove());
+  for(let i=0;i<N*N;i++){const s=document.createElement('div');s.className='slot';
+    Object.assign(s.style,{width:cs+'px',height:cs+'px',left:gap+(i%N)*(cs+gap)+'px',top:gap+Math.floor(i/N)*(cs+gap)+'px'});boardEl.prepend(s)}
+  for(const t of S.tiles)style(els.get(t.id),t,true);
+}
+function style(el,t,instant){
+  if(!el)return;
+  if(instant)el.style.transition='none';
+  el.style.width=el.style.height=cs+'px';
+  el.style.transform=`translate(${gap+t.c*(cs+gap)}px,${gap+t.r*(cs+gap)}px)`;
+  if(instant){void el.offsetWidth;el.style.transition=''}
+}
+function paint(el,v){
+  el.style.background=COLORS[v]||'#1f1b16';el.style.color=v>2048?'#fbf6ea':'';
+  const d=String(v).length;el.style.fontSize=cs*(d<3?.46:d<4?.38:d<5?.3:.24)+'px';
+  el.firstChild.textContent=v;
+}
+function render(dead=[]){
+  for(const t of dead){const el=els.get(t.id);if(!el)continue;el.classList.add('dead');style(el,t);els.delete(t.id);setTimeout(()=>el.remove(),120)}
+  for(const t of S.tiles){
+    let el=els.get(t.id);
+    if(!el){el=document.createElement('div');el.className='tile'+(t.fresh?' new':'');el.appendChild(document.createElement('span'));
+      boardEl.appendChild(el);els.set(t.id,el);style(el,t,true);paint(el,t.v);continue}
+    style(el,t);
+    if(t.pop){t.pop=false;const v=t.v;setTimeout(()=>{paint(el,v);el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')},100)}
+    else paint(el,t.v);
+  }
+}
+function hud(gain){
+  $('#score').textContent=S.score.toLocaleString();
+  const best=Math.max(store.get('g2048-best',0),S.score);store.set('g2048-best',best);$('#best').textContent=best.toLocaleString();
+  const top=Math.max(...S.tiles.map(t=>t.v));if(top>store.get('g2048-top',0))store.set('g2048-top',top);
+  $('#label').textContent=S.won?`Top tile ${top}`:`Get to 2048`;
+  $('#undoCount').textContent=S.undos;$('#undo').disabled=!S.undos||!S.hist.length;
+  if(gain){const g=document.createElement('span');g.className='gain';g.textContent='+'+gain;$('#score').parentNode.appendChild(g);setTimeout(()=>g.remove(),700)}
+}
+function winCard(){
+  showOverlay(`<div class="stamp good">2048!</div><p class="stats">${S.score.toLocaleString()} points</p><p>You made it. Keep going for a bigger tile?</p>
+    <div class="btns"><button class="tool" id="again">New game</button><button class="tool primary" id="keep">Keep going</button></div>`);
+  $('#again').onclick=newGame;$('#keep').onclick=hideOverlay;
+}
+function overCard(){
+  const best=store.get('g2048-best',0),top=Math.max(...S.tiles.map(t=>t.v));
+  showOverlay(`<div class="stamp">BOXED IN</div><p class="stats">${S.score.toLocaleString()} points · top tile ${top}</p>
+    <p>${S.score>=best?'New best score.':`Best: ${best.toLocaleString()}.`}</p>
+    <div class="btns">${S.undos&&S.hist.length?'<button class="tool" id="undoO">Undo last move</button>':''}<button class="tool primary" id="again">New game</button></div>`);
+  $('#again').onclick=newGame;const u=$('#undoO');if(u)u.onclick=()=>{hideOverlay();undo()};
+}
+function undo(){
+  if(!S.undos||!S.hist.length)return;
+  const h=S.hist.pop();S.undos--;S.over=false;S.won=h.won;S.score=h.score;
+  for(const el of els.values())el.remove();els.clear();
+  S.tiles=h.tiles.map(t=>({...t,fresh:false}));render();hud();
+}
+
+// ---------- input: a swipe fires as soon as it passes the threshold ----------
+let sw=null;
+$('#stage').addEventListener('pointerdown',e=>{e.preventDefault();sw={x:e.clientX,y:e.clientY,done:false};try{$('#stage').setPointerCapture(e.pointerId)}catch(_){}});
+$('#stage').addEventListener('pointermove',e=>{
+  if(!sw||sw.done)return;
+  const dx=e.clientX-sw.x,dy=e.clientY-sw.y;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;
+  sw.done=true;move(Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0));
+});
+['pointerup','pointercancel'].forEach(t=>$('#stage').addEventListener(t,()=>sw=null));
+addEventListener('keydown',e=>{const k={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3,w:0,d:1,s:2,a:3}[e.key];if(k!=null){e.preventDefault();move(k)}});
+$('#undo').onclick=undo;
+$('#newBtn').onclick=()=>{
+  if(!S||S.over||S.score===0){newGame();return}
+  showOverlay(`<h2>New game?</h2><p>You're on ${S.score.toLocaleString()} points.</p>
+    <div class="btns"><button class="tool" id="closeO">Keep playing</button><button class="tool primary" id="again">New game</button></div>`);
+  $('#again').onclick=newGame;$('#closeO').onclick=hideOverlay;
+};
+addEventListener('resize',()=>S&&fit());
+newGame();fit();
+</script>
+</body>
+</html>

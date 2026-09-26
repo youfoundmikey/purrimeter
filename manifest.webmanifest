@@ -1,7 +1,7 @@
 {
   "name": "Arkade",
   "short_name": "Arkade",
-  "description": "Nine games, one arcade.",
+  "description": "Seventeen games, one arcade.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

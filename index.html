@@ -10,7 +10,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Arkade</title>
-<meta name="description" content="Nine games, one arcade. Purrimeter, Fillmore, Block Party, Face Off, Darts, Domino, Ludo, Minesweeper and Pool.">
+<meta name="description" content="Seventeen games, one arcade: puzzles, board and card games, and arcade classics. No ads.">
 <meta name="theme-color" content="#f3ead8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%231f1b16'/%3E%3Crect x='6' y='6' width='13' height='13' rx='2' fill='%23e8b04b'/%3E%3Crect x='21' y='6' width='13' height='13' rx='2' fill='%237fb6a8'/%3E%3Crect x='6' y='21' width='13' height='13' rx='2' fill='%23e07e57'/%3E%3Crect x='21' y='21' width='13' height='13' rx='2' fill='%238fb3dc'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,30 +62,24 @@ h1{font-size:clamp(48px,min(15vw,9dvh),84px)}
 footer{display:none}
 @media (max-height:720px){.pitch{display:none}.tag{font-size:15px}}
 
-/* ===== 8-game grid ===== */
-.app{gap:10px}
+/* ===== 17-game hub: sections that scroll ===== */
+.app{gap:8px;padding-bottom:0}
 h1{font-size:clamp(38px,min(12.5vw,6.6dvh),72px)}
 .tag{margin-top:4px;font-size:15px}
-.games{grid-template-rows:repeat(4,minmax(0,1fr));gap:10px}
-.game{border-width:2.5px;border-radius:12px;box-shadow:4px 4px 0 var(--ink)}
-.art{border-bottom-width:2.5px}
-.art svg{width:auto;height:78%;max-width:78%}
-.info{padding:5px 9px 7px;gap:0}
-.name{font-size:clamp(13px,4vw,19px)}
-.pitch{display:none}
-.stat{padding-top:1px;font-size:10.5px;letter-spacing:.06em}
-.note{display:none}
-@media (min-height:900px){.pitch{display:block;font-size:12.5px}}
-
-/* ===== 9-game grid ===== */
-.games{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:9px}
-.game{box-shadow:3px 3px 0 var(--ink)}
-.art svg{height:80%;max-width:80%}
-.info{padding:4px 7px 6px}
+.games{display:block;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  margin:0 -14px;padding:2px 14px max(18px,env(safe-area-inset-bottom));touch-action:pan-y}
+.sec{margin:14px 2px 8px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.sec::after{content:"";flex:1;height:2px;background:rgba(31,27,22,.15);border-radius:2px}
+.sec:first-child{margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.game{border-width:2.5px;border-radius:12px;box-shadow:3px 3px 0 var(--ink)}
+.art{aspect-ratio:1.12;flex:none;border-bottom-width:2.5px}
+.art svg{width:76%;height:76%;max-width:none}
+.info{padding:5px 7px 7px;gap:0}
 .name{font-size:clamp(10px,2.75vw,17px);letter-spacing:0;white-space:nowrap}
-.stat{font-size:clamp(8.5px,2.4vw,10.5px);letter-spacing:.03em;line-height:1.2}
-.pitch{display:none}
-@media (min-height:900px) and (min-width:500px){.pitch{display:block;font-size:12px}}
+.stat{padding-top:1px;font-size:clamp(8.5px,2.4vw,10.5px);letter-spacing:.03em;line-height:1.2}
+.pitch,.note,footer{display:none}
+@media (min-width:520px){.pitch{display:block;font-size:12px}}
 </style>
 </head>
 <body>
@@ -93,179 +87,270 @@ h1{font-size:clamp(38px,min(12.5vw,6.6dvh),72px)}
 <main class="app">
   <header>
     <h1 aria-label="Arkade"><span>A</span><span>R</span><span>K</span><span>A</span><span>D</span><span>E</span></h1>
-    <p class="tag">nine games. zero ads. pick your poison.</p>
+    <p class="tag">seventeen games. zero ads. pick your poison.</p>
   </header>
 
   <section class="games">
-    <a class="game" href="purrimeter/">
-      <div class="art" style="background:#f2e3c1">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <rect x="4" y="4" width="112" height="112" rx="8" fill="#1f1b16"/>
-          <g>
-            <rect x="8" y="8" width="33" height="33" fill="#9fc27a"/><rect x="44" y="8" width="33" height="33" fill="#f0a3a8"/><rect x="80" y="8" width="33" height="33" fill="#c9b3d9"/>
-            <rect x="8" y="44" width="33" height="33" fill="#9fc27a"/><rect x="44" y="44" width="33" height="33" fill="#e8b04b"/><rect x="80" y="44" width="33" height="33" fill="#c9b3d9"/>
-            <rect x="8" y="80" width="33" height="33" fill="#7fb6a8"/><rect x="44" y="80" width="33" height="33" fill="#e8b04b"/><rect x="80" y="80" width="33" height="33" fill="#a7c4e2"/>
-          </g>
-          <path d="M18 34 L18 16 L23 21 Q24.5 20 26 21 L31 16 L31 34 Q24.5 37 18 34Z" fill="#1f1b16"/>
-          <path d="M90 106 L90 88 L95 93 Q96.5 92 98 93 L103 88 L103 106 Q96.5 109 90 106Z" fill="#1f1b16"/>
-          <path d="M53 55 L68 70 M68 55 L53 70" stroke="#1f1b16" stroke-width="4.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="info">
-        <span class="name">PURRIMETER</span>
-        <span class="pitch">One cat per row, column and color. No touching.</span>
-        <span class="stat" id="st-purr"></span>
-      </div>
-    </a>
-
-    <a class="game" href="fillmore/">
-      <div class="art" style="background:#dbe8e2">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <g fill="#1f1b16"><rect x="4" y="4" width="76" height="40"/><rect x="4" y="40" width="112" height="76"/></g>
-          <g fill="#7fb6a8">
-            <rect x="8" y="8" width="33" height="33"/><rect x="44" y="8" width="33" height="33"/>
-            <rect x="8" y="44" width="33" height="33"/><rect x="44" y="44" width="33" height="33"/><rect x="80" y="44" width="33" height="33"/>
-            <rect x="8" y="80" width="33" height="33"/><rect x="44" y="80" width="33" height="33"/>
-          </g>
-          <rect x="80" y="80" width="33" height="33" fill="#fbf6ea"/>
-          <path d="M24.5 96.5 V24.5 H60.5 V60.5 H96.5" fill="none" stroke="#1f1b16" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M60.5 60.5" /><circle cx="24.5" cy="96.5" r="10" fill="#1f1b16"/><circle cx="96.5" cy="60.5" r="3.4" fill="#fbf6ea"/>
-        </svg>
-      </div>
-      <div class="info">
-        <span class="name">FILLMORE</span>
-        <span class="pitch">One line through every block. No lifting.</span>
-        <span class="stat" id="st-fill"></span>
-      </div>
-    </a>
-
-    <a class="game" href="blockparty/">
-      <div class="art" style="background:#f6dccf">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <rect x="4" y="4" width="112" height="112" rx="8" fill="#1f1b16"/>
-          <g fill="#fbf6ea">
-            <rect x="8" y="8" width="24.25" height="24.25"/><rect x="35.25" y="8" width="24.25" height="24.25"/><rect x="62.5" y="8" width="24.25" height="24.25"/><rect x="89.75" y="8" width="22.25" height="24.25"/>
-            <rect x="8" y="35.25" width="24.25" height="24.25"/><rect x="35.25" y="35.25" width="24.25" height="24.25"/>
-          </g>
-          <g fill="#8fb3dc"><rect x="62.5" y="35.25" width="24.25" height="24.25"/><rect x="89.75" y="35.25" width="22.25" height="24.25"/></g>
-          <g fill="#e8b04b"><rect x="8" y="62.5" width="24.25" height="24.25"/><rect x="35.25" y="62.5" width="24.25" height="24.25"/><rect x="62.5" y="62.5" width="24.25" height="24.25"/></g>
-          <rect x="89.75" y="62.5" width="22.25" height="24.25" fill="#fbf6ea"/>
-          <g fill="#e07e57"><rect x="8" y="89.75" width="24.25" height="22.25"/><rect x="35.25" y="89.75" width="24.25" height="22.25"/></g>
-          <g fill="#8fbf62"><rect x="62.5" y="89.75" width="24.25" height="22.25"/><rect x="89.75" y="89.75" width="22.25" height="22.25"/></g>
-          <g transform="translate(86 -14) rotate(8)"><rect x="0" y="0" width="22" height="22" rx="2" fill="#b89ad4" stroke="#1f1b16" stroke-width="3"/><rect x="0" y="24" width="22" height="22" rx="2" fill="#b89ad4" stroke="#1f1b16" stroke-width="3"/></g>
-        </svg>
-      </div>
-      <div class="info">
-        <span class="name">BLOCK PARTY</span>
-        <span class="pitch">Drop blocks, clear lines, don't get boxed in.</span>
-        <span class="stat" id="st-block"></span>
-      </div>
-    </a>
-
-    <a class="game" href="faceoff/">
-      <div class="art" style="background:#e5e0f0">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <g transform="translate(6 18) rotate(-7 26 36)"><rect width="52" height="66" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/>
-            <rect x="0" y="0" width="52" height="66" rx="7" fill="url(#bk)"/></g>
-          <defs><pattern id="bk" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#e8b04b"/><rect width="5" height="10" fill="#e07e57"/></pattern></defs>
-          <g transform="translate(6 18) rotate(-7 26 36)"><rect width="52" height="66" rx="7" fill="none" stroke="#1f1b16" stroke-width="3.5"/><text x="26" y="44" text-anchor="middle" font-family="Archivo Black,Impact,sans-serif" font-size="30" fill="#fbf6ea" stroke="#1f1b16" stroke-width="1.5">?</text></g>
-          <g transform="translate(58 12) rotate(6 28 40)">
-            <rect width="56" height="76" rx="7" fill="#fff" stroke="#1f1b16" stroke-width="3.5"/>
-            <path d="M8 76 Q9 60 28 58 Q47 60 48 76 Z" fill="#7fb6a8" stroke="#1f1b16" stroke-width="2.5"/>
-            <ellipse cx="28" cy="36" rx="14" ry="15" fill="#eab58f" stroke="#1f1b16" stroke-width="2.5"/>
-            <path d="M14 34 Q13 19 28 19 Q43 19 42 34 Q40 27 35 25 Q28 28 21 25 Q16 27 14 34Z" fill="#c9582e" stroke="#1f1b16" stroke-width="2.5" stroke-linejoin="round"/>
-            <circle cx="23" cy="37" r="2.6" fill="#1f1b16"/><circle cx="33" cy="37" r="2.6" fill="#1f1b16"/>
-            <path d="M23 44 Q28 47.5 33 44" stroke="#1f1b16" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-            <rect x="0" y="62" width="56" height="14" fill="#1f1b16"/><rect x="0" y="62" width="56" height="14" rx="0" fill="#1f1b16"/>
-          </g>
-        </svg>
-      </div>
-      <div class="info">
-        <span class="name">FACE OFF</span>
-        <span class="pitch">Guess who against a bot that plays to win.</span>
-        <span class="stat" id="st-face"></span>
-      </div>
-    </a>
-
-    <a class="game" href="darts/">
-      <div class="art" style="background:#d6e6f0">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <circle cx="63" cy="64" r="52" fill="#1f1b16"/><circle cx="60" cy="60" r="52" fill="#1f1b16"/>
-          <circle cx="60" cy="60" r="42" fill="#fbf6ea"/>
-          <g fill="#1f1b16"><path d="M60 60 L60 18 A42 42 0 0 1 73 20Z"/><path d="M60 60 L85 26 A42 42 0 0 1 95 37Z"/><path d="M60 60 L101 52 A42 42 0 0 1 101 68Z"/>
-          <path d="M60 60 L95 83 A42 42 0 0 1 85 94Z"/><path d="M60 60 L73 100 A42 42 0 0 1 60 102Z"/><path d="M60 60 L35 94 A42 42 0 0 1 25 83Z"/>
-          <path d="M60 60 L19 68 A42 42 0 0 1 19 52Z"/><path d="M60 60 L25 37 A42 42 0 0 1 35 26Z"/><path d="M60 60 L47 20 A42 42 0 0 1 60 18Z"/></g>
-          <circle cx="60" cy="60" r="42" fill="none" stroke="#d9452b" stroke-width="5"/><circle cx="60" cy="60" r="25" fill="none" stroke="#5f9e4c" stroke-width="4"/>
-          <circle cx="60" cy="60" r="8" fill="#5f9e4c"/><circle cx="60" cy="60" r="4" fill="#d9452b"/>
-          <g transform="translate(66 50) rotate(-38)"><rect x="0" y="-2" width="30" height="4" fill="#1f1b16"/><path d="M26 -2 L40 -9 L36 0 L40 9 L26 2Z" fill="#e07e57" stroke="#1f1b16" stroke-width="2" stroke-linejoin="round"/></g>
-        </svg>
-      </div>
-      <div class="info"><span class="name">DARTS</span><span class="pitch">301 against a bot. Time your aim.</span><span class="stat" id="st-darts"></span></div>
-    </a>
-
-    <a class="game" href="domino/">
-      <div class="art" style="background:#d7e8df">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <g transform="rotate(-14 45 60)"><rect x="24" y="16" width="40" height="80" rx="7" fill="#1f1b16"/><rect x="21" y="13" width="40" height="80" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="4"/>
-            <path d="M21 53 H61" stroke="#1f1b16" stroke-width="3.5"/><g fill="#1f1b16"><circle cx="41" cy="33" r="4.5"/><circle cx="31" cy="64" r="4"/><circle cx="51" cy="64" r="4"/><circle cx="31" cy="82" r="4"/><circle cx="51" cy="82" r="4"/><circle cx="41" cy="73" r="4"/></g></g>
-          <g transform="rotate(10 80 64)"><rect x="63" y="24" width="40" height="80" rx="7" fill="#1f1b16"/><rect x="60" y="21" width="40" height="80" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="4"/>
-            <path d="M60 61 H100" stroke="#1f1b16" stroke-width="3.5"/><g fill="#1f1b16"><circle cx="70" cy="32" r="4"/><circle cx="90" cy="50" r="4"/><circle cx="80" cy="41" r="4"/><circle cx="70" cy="72" r="4"/><circle cx="90" cy="90" r="4"/></g></g>
-        </svg>
-      </div>
-      <div class="info"><span class="name">DOMINO</span><span class="pitch">Match the ends. Empty your hand first.</span><span class="stat" id="st-domino"></span></div>
-    </a>
-
-    <a class="game" href="ludo/">
-      <div class="art" style="background:#f3e3c4">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <rect x="11" y="11" width="102" height="102" rx="6" fill="#1f1b16"/>
-          <rect x="7" y="7" width="102" height="102" rx="6" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/>
-          <rect x="7" y="7" width="40" height="40" fill="#7fb6a8" stroke="#1f1b16" stroke-width="3"/><rect x="69" y="7" width="40" height="40" fill="#e8b04b" stroke="#1f1b16" stroke-width="3"/>
-          <rect x="7" y="69" width="40" height="40" fill="#e07e57" stroke="#1f1b16" stroke-width="3"/><rect x="69" y="69" width="40" height="40" fill="#8fb3dc" stroke="#1f1b16" stroke-width="3"/>
-          <polygon points="47,47 69,47 58,58" fill="#e8b04b" stroke="#1f1b16" stroke-width="2"/><polygon points="69,47 69,69 58,58" fill="#8fb3dc" stroke="#1f1b16" stroke-width="2"/>
-          <polygon points="47,69 69,69 58,58" fill="#e07e57" stroke="#1f1b16" stroke-width="2"/><polygon points="47,47 47,69 58,58" fill="#7fb6a8" stroke="#1f1b16" stroke-width="2"/>
-          <g stroke="#1f1b16" stroke-width="2.5"><circle cx="27" cy="27" r="8" fill="#fbf6ea"/><circle cx="89" cy="89" r="8" fill="#fbf6ea"/><circle cx="58" cy="90" r="7" fill="#e07e57"/><circle cx="89" cy="27" r="8" fill="#fbf6ea"/><circle cx="27" cy="89" r="8" fill="#fbf6ea"/></g>
-        </svg>
-      </div>
-      <div class="info"><span class="name">LUDO</span><span class="pitch">Race three bots home. Send them back.</span><span class="stat" id="st-ludo"></span></div>
-    </a>
-
-    <a class="game" href="minesweeper/">
-      <div class="art" style="background:#f0e2c8">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <rect x="12" y="12" width="102" height="102" rx="6" fill="#1f1b16"/>
-          <rect x="8" y="8" width="102" height="102" rx="6" fill="#1f1b16"/>
-          <g>
-            <rect x="12" y="12" width="30" height="30" fill="#ddcca8"/><rect x="44" y="12" width="30" height="30" fill="#ddcca8"/><rect x="76" y="12" width="30" height="30" fill="#fbf6ea"/>
-            <rect x="12" y="44" width="30" height="30" fill="#ddcca8"/><rect x="44" y="44" width="30" height="30" fill="#ddcca8"/><rect x="76" y="44" width="30" height="30" fill="#fbf6ea"/>
-            <rect x="12" y="76" width="30" height="30" fill="#fbf6ea"/><rect x="44" y="76" width="30" height="30" fill="#fbf6ea"/><rect x="76" y="76" width="30" height="30" fill="#fbf6ea"/>
-          </g>
-          <g font-family="Archivo Black,Impact,sans-serif" font-size="20" text-anchor="middle"><text x="59" y="35" fill="#3f7fc6">1</text><text x="59" y="67" fill="#4f8f3e">2</text><text x="27" y="67" fill="#3f7fc6">1</text></g>
-          <path d="M86 20 V36" stroke="#1f1b16" stroke-width="3" stroke-linecap="round"/><path d="M87 20 L99 25 L87 30Z" fill="#d9452b" stroke="#1f1b16" stroke-width="2" stroke-linejoin="round"/>
-          <g transform="translate(59 91)"><path d="M0 -11V11M-11 0H11M-8 -8L8 8M8 -8L-8 8" stroke="#1f1b16" stroke-width="2.6" stroke-linecap="round"/><circle r="6.5" fill="#1f1b16"/><circle cx="-2" cy="-2" r="1.8" fill="#fbf6ea"/></g>
-        </svg>
-      </div>
-      <div class="info"><span class="name">MINESWEEPER</span><span class="pitch">Safe first tap. Long-press to flag.</span><span class="stat" id="st-mines"></span></div>
-    </a>
-    <a class="game" href="pool/">
-      <div class="art" style="background:#d5e7dc">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <rect x="10" y="10" width="104" height="104" rx="12" fill="#1f1b16"/>
-          <rect x="6" y="6" width="104" height="104" rx="12" fill="#6b4428" stroke="#1f1b16" stroke-width="3.5"/>
-          <rect x="17" y="17" width="82" height="82" rx="3" fill="#3e8a70" stroke="#1f1b16" stroke-width="2.5"/>
-          <g fill="#1f1b16"><circle cx="18" cy="18" r="8"/><circle cx="98" cy="18" r="8"/><circle cx="18" cy="98" r="8"/><circle cx="98" cy="98" r="8"/></g>
-          <g stroke="#1f1b16" stroke-width="2.5">
-            <circle cx="48" cy="46" r="11" fill="#1f1b16"/>
-            <g><circle cx="72" cy="40" r="11" fill="#fbf6ea"/><path d="M61.5 36 H82.5 V44 H61.5Z" fill="#d9452b" stroke="none"/><circle cx="72" cy="40" r="11" fill="none"/></g>
-            <circle cx="62" cy="80" r="11" fill="#fbf6ea"/>
-          </g>
-          <circle cx="48" cy="46" r="5" fill="#fbf6ea"/><text x="48" y="49.5" text-anchor="middle" font-family="Archivo Black,Impact,sans-serif" font-size="8" fill="#1f1b16">8</text>
-          <circle cx="58.5" cy="76.5" r="2.6" fill="#fff" opacity=".8"/>
-          <g transform="translate(62 80) rotate(52)"><rect x="15" y="-3" width="62" height="6" rx="3" fill="#e0b77a" stroke="#1f1b16" stroke-width="2.5"/><rect x="15" y="-3" width="6" height="6" fill="#8fb3dc" stroke="#1f1b16" stroke-width="2"/></g>
-        </svg>
-      </div>
-      <div class="info"><span class="name">POOL</span><span class="pitch">8-ball against a bot, or pass the phone.</span><span class="stat" id="st-pool"></span></div>
-    </a>
+    <h2 class="sec">Puzzles</h2>
+    <div class="grid">
+      <a class="game" href="purrimeter/">
+        <div class="art" style="background:#f2e3c1">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="4" y="4" width="112" height="112" rx="8" fill="#1f1b16"/>
+            <g>
+              <rect x="8" y="8" width="33" height="33" fill="#9fc27a"/><rect x="44" y="8" width="33" height="33" fill="#f0a3a8"/><rect x="80" y="8" width="33" height="33" fill="#c9b3d9"/>
+              <rect x="8" y="44" width="33" height="33" fill="#9fc27a"/><rect x="44" y="44" width="33" height="33" fill="#e8b04b"/><rect x="80" y="44" width="33" height="33" fill="#c9b3d9"/>
+              <rect x="8" y="80" width="33" height="33" fill="#7fb6a8"/><rect x="44" y="80" width="33" height="33" fill="#e8b04b"/><rect x="80" y="80" width="33" height="33" fill="#a7c4e2"/>
+            </g>
+            <path d="M18 34 L18 16 L23 21 Q24.5 20 26 21 L31 16 L31 34 Q24.5 37 18 34Z" fill="#1f1b16"/>
+            <path d="M90 106 L90 88 L95 93 Q96.5 92 98 93 L103 88 L103 106 Q96.5 109 90 106Z" fill="#1f1b16"/>
+            <path d="M53 55 L68 70 M68 55 L53 70" stroke="#1f1b16" stroke-width="4.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="name">PURRIMETER</span>
+          <span class="pitch">One cat per row, column and color. No touching.</span>
+          <span class="stat" id="st-purr"></span>
+        </div>
+      </a>
+      <a class="game" href="fillmore/">
+        <div class="art" style="background:#dbe8e2">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <g fill="#1f1b16"><rect x="4" y="4" width="76" height="40"/><rect x="4" y="40" width="112" height="76"/></g>
+            <g fill="#7fb6a8">
+              <rect x="8" y="8" width="33" height="33"/><rect x="44" y="8" width="33" height="33"/>
+              <rect x="8" y="44" width="33" height="33"/><rect x="44" y="44" width="33" height="33"/><rect x="80" y="44" width="33" height="33"/>
+              <rect x="8" y="80" width="33" height="33"/><rect x="44" y="80" width="33" height="33"/>
+            </g>
+            <rect x="80" y="80" width="33" height="33" fill="#fbf6ea"/>
+            <path d="M24.5 96.5 V24.5 H60.5 V60.5 H96.5" fill="none" stroke="#1f1b16" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M60.5 60.5" /><circle cx="24.5" cy="96.5" r="10" fill="#1f1b16"/><circle cx="96.5" cy="60.5" r="3.4" fill="#fbf6ea"/>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="name">FILLMORE</span>
+          <span class="pitch">One line through every block. No lifting.</span>
+          <span class="stat" id="st-fill"></span>
+        </div>
+      </a>
+      <a class="game" href="fiver/">
+        <div class="art" style="background:#e3ecd9">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <g stroke="#1f1b16" stroke-width="3">
+              <rect x="4" y="22" width="20" height="20" rx="3" fill="#8a7f71"/><rect x="27" y="22" width="20" height="20" rx="3" fill="#e8b04b"/><rect x="50" y="22" width="20" height="20" rx="3" fill="#8a7f71"/><rect x="73" y="22" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="96" y="22" width="20" height="20" rx="3" fill="#8a7f71"/>
+              <rect x="4" y="50" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="27" y="50" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="50" y="50" width="20" height="20" rx="3" fill="#e8b04b"/><rect x="73" y="50" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="96" y="50" width="20" height="20" rx="3" fill="#8a7f71"/>
+              <rect x="4" y="78" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="27" y="78" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="50" y="78" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="73" y="78" width="20" height="20" rx="3" fill="#5f9e4c"/><rect x="96" y="78" width="20" height="20" rx="3" fill="#5f9e4c"/>
+            </g>
+            <g font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="13" fill="#fff"><text x="14" y="93">W</text><text x="37" y="93">O</text><text x="60" y="93">R</text><text x="83" y="93">D</text><text x="106" y="93">S</text></g></svg>
+        </div>
+        <div class="info"><span class="name">FIVER</span><span class="pitch">Guess the word in six. New one daily.</span><span class="stat" id="st-fiver"></span></div>
+      </a>
+      <a class="game" href="sudoku/">
+        <div class="art" style="background:#efe6d2">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="10" y="10" width="104" height="104" rx="6" fill="#1f1b16"/><rect x="6" y="6" width="104" height="104" rx="6" fill="#fbf6ea" stroke="#1f1b16" stroke-width="4"/>
+            <path d="M40.7 6V110M75.3 6V110M6 40.7H110M6 75.3H110" stroke="#1f1b16" stroke-width="3.5"/>
+            <path d="M17.6 6V110M29.1 6V110M52.2 6V110M63.8 6V110M86.9 6V110M98.4 6V110M6 17.6H110M6 29.1H110M6 52.2H110M6 63.8H110M6 86.9H110M6 98.4H110" stroke="#1f1b16" stroke-width="1" opacity=".35"/>
+            <rect x="41.5" y="41.5" width="33" height="33" fill="#e8b04b"/>
+            <g font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="15" fill="#1f1b16"><text x="23" y="29">5</text><text x="93" y="29">3</text><text x="23" y="99">8</text><text x="58" y="99">1</text><text x="93" y="64">9</text></g>
+            <text x="58" y="64" font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="20" fill="#3f6fc6">7</text></svg>
+        </div>
+        <div class="info"><span class="name">SUDOKU</span><span class="pitch">Nine digits, no repeats. Daily puzzle.</span><span class="stat" id="st-sudoku"></span></div>
+      </a>
+      <a class="game" href="minesweeper/">
+        <div class="art" style="background:#f0e2c8">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="12" y="12" width="102" height="102" rx="6" fill="#1f1b16"/>
+            <rect x="8" y="8" width="102" height="102" rx="6" fill="#1f1b16"/>
+            <g>
+              <rect x="12" y="12" width="30" height="30" fill="#ddcca8"/><rect x="44" y="12" width="30" height="30" fill="#ddcca8"/><rect x="76" y="12" width="30" height="30" fill="#fbf6ea"/>
+              <rect x="12" y="44" width="30" height="30" fill="#ddcca8"/><rect x="44" y="44" width="30" height="30" fill="#ddcca8"/><rect x="76" y="44" width="30" height="30" fill="#fbf6ea"/>
+              <rect x="12" y="76" width="30" height="30" fill="#fbf6ea"/><rect x="44" y="76" width="30" height="30" fill="#fbf6ea"/><rect x="76" y="76" width="30" height="30" fill="#fbf6ea"/>
+            </g>
+            <g font-family="Archivo Black,Impact,sans-serif" font-size="20" text-anchor="middle"><text x="59" y="35" fill="#3f7fc6">1</text><text x="59" y="67" fill="#4f8f3e">2</text><text x="27" y="67" fill="#3f7fc6">1</text></g>
+            <path d="M86 20 V36" stroke="#1f1b16" stroke-width="3" stroke-linecap="round"/><path d="M87 20 L99 25 L87 30Z" fill="#d9452b" stroke="#1f1b16" stroke-width="2" stroke-linejoin="round"/>
+            <g transform="translate(59 91)"><path d="M0 -11V11M-11 0H11M-8 -8L8 8M8 -8L-8 8" stroke="#1f1b16" stroke-width="2.6" stroke-linecap="round"/><circle r="6.5" fill="#1f1b16"/><circle cx="-2" cy="-2" r="1.8" fill="#fbf6ea"/></g>
+          </svg>
+        </div>
+        <div class="info"><span class="name">MINESWEEPER</span><span class="pitch">Safe first tap. Long-press to flag.</span><span class="stat" id="st-mines"></span></div>
+      </a>
+      <a class="game" href="blockparty/">
+        <div class="art" style="background:#f6dccf">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="4" y="4" width="112" height="112" rx="8" fill="#1f1b16"/>
+            <g fill="#fbf6ea">
+              <rect x="8" y="8" width="24.25" height="24.25"/><rect x="35.25" y="8" width="24.25" height="24.25"/><rect x="62.5" y="8" width="24.25" height="24.25"/><rect x="89.75" y="8" width="22.25" height="24.25"/>
+              <rect x="8" y="35.25" width="24.25" height="24.25"/><rect x="35.25" y="35.25" width="24.25" height="24.25"/>
+            </g>
+            <g fill="#8fb3dc"><rect x="62.5" y="35.25" width="24.25" height="24.25"/><rect x="89.75" y="35.25" width="22.25" height="24.25"/></g>
+            <g fill="#e8b04b"><rect x="8" y="62.5" width="24.25" height="24.25"/><rect x="35.25" y="62.5" width="24.25" height="24.25"/><rect x="62.5" y="62.5" width="24.25" height="24.25"/></g>
+            <rect x="89.75" y="62.5" width="22.25" height="24.25" fill="#fbf6ea"/>
+            <g fill="#e07e57"><rect x="8" y="89.75" width="24.25" height="22.25"/><rect x="35.25" y="89.75" width="24.25" height="22.25"/></g>
+            <g fill="#8fbf62"><rect x="62.5" y="89.75" width="24.25" height="22.25"/><rect x="89.75" y="89.75" width="22.25" height="22.25"/></g>
+            <g transform="translate(86 -14) rotate(8)"><rect x="0" y="0" width="22" height="22" rx="2" fill="#b89ad4" stroke="#1f1b16" stroke-width="3"/><rect x="0" y="24" width="22" height="22" rx="2" fill="#b89ad4" stroke="#1f1b16" stroke-width="3"/></g>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="name">BLOCK PARTY</span>
+          <span class="pitch">Drop blocks, clear lines, don't get boxed in.</span>
+          <span class="stat" id="st-block"></span>
+        </div>
+      </a>
+    </div>
+    <h2 class="sec">Boards & cards</h2>
+    <div class="grid">
+      <a class="game" href="solitaire/">
+        <div class="art" style="background:#d3e6dd">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <g transform="rotate(-16 60 80)"><rect x="20" y="22" width="48" height="68" rx="6" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/><text x="31" y="40" font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="13" fill="#1f1b16">K</text><text x="44" y="72" font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="24" fill="#1f1b16">♠</text></g>
+            <g transform="rotate(12 60 80)"><rect x="52" y="22" width="48" height="68" rx="6" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/><text x="63" y="40" font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="13" fill="#c9382a">A</text><text x="76" y="72" font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" font-size="26" fill="#c9382a">♥</text></g></svg>
+        </div>
+        <div class="info"><span class="name">SOLITAIRE</span><span class="pitch">Klondike. Tap to move, drag to place.</span><span class="stat" id="st-sol"></span></div>
+      </a>
+      <a class="game" href="connect4/">
+        <div class="art" style="background:#dbe3f2">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="10" y="20" width="104" height="90" rx="8" fill="#1f1b16"/><rect x="6" y="16" width="104" height="90" rx="8" fill="#6f8fd0" stroke="#1f1b16" stroke-width="3.5"/>
+            <g stroke="#1f1b16" stroke-width="2.5">
+              <circle cx="24" cy="34" r="9" fill="#f3ead8"/><circle cx="46" cy="34" r="9" fill="#f3ead8"/><circle cx="68" cy="34" r="9" fill="#f3ead8"/><circle cx="90" cy="34" r="9" fill="#e8b04b"/>
+              <circle cx="24" cy="57" r="9" fill="#f3ead8"/><circle cx="46" cy="57" r="9" fill="#f3ead8"/><circle cx="68" cy="57" r="9" fill="#d9452b"/><circle cx="90" cy="57" r="9" fill="#e8b04b"/>
+              <circle cx="24" cy="80" r="9" fill="#f3ead8"/><circle cx="46" cy="80" r="9" fill="#d9452b"/><circle cx="68" cy="80" r="9" fill="#e8b04b"/><circle cx="90" cy="80" r="9" fill="#d9452b"/>
+            </g>
+            <circle cx="24" cy="4" r="9" fill="#d9452b" stroke="#1f1b16" stroke-width="2.5"/></svg>
+        </div>
+        <div class="info"><span class="name">FOUR UP</span><span class="pitch">Four in a row against a bot or a friend.</span><span class="stat" id="st-c4"></span></div>
+      </a>
+      <a class="game" href="checkers/">
+        <div class="art" style="background:#f1e4c8">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="10" y="10" width="104" height="104" rx="6" fill="#1f1b16"/>
+            <g><rect x="6" y="6" width="104" height="104" fill="#f2e3c1"/>
+            <g fill="#3e7a66"><rect x="32" y="6" width="26" height="26"/><rect x="84" y="6" width="26" height="26"/><rect x="6" y="32" width="26" height="26"/><rect x="58" y="32" width="26" height="26"/><rect x="32" y="58" width="26" height="26"/><rect x="84" y="58" width="26" height="26"/><rect x="6" y="84" width="26" height="26"/><rect x="58" y="84" width="26" height="26"/></g></g>
+            <rect x="6" y="6" width="104" height="104" fill="none" stroke="#1f1b16" stroke-width="4"/>
+            <g stroke="#1f1b16" stroke-width="3"><circle cx="45" cy="19" r="10" fill="#2e2924"/><circle cx="71" cy="45" r="10" fill="#2e2924"/><circle cx="19" cy="97" r="10" fill="#d9452b"/><circle cx="45" cy="71" r="10" fill="#d9452b"/><circle cx="97" cy="71" r="10" fill="#d9452b"/></g>
+            <path d="M38 74 L39 66 L42.5 69 L45 64 L47.5 69 L51 66 L52 74Z" fill="#e8b04b" stroke="#1f1b16" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="info"><span class="name">CHECKERS</span><span class="pitch">Forced jumps, kings, a bot with a plan.</span><span class="stat" id="st-ck"></span></div>
+      </a>
+      <a class="game" href="domino/">
+        <div class="art" style="background:#d7e8df">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <g transform="rotate(-14 45 60)"><rect x="24" y="16" width="40" height="80" rx="7" fill="#1f1b16"/><rect x="21" y="13" width="40" height="80" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="4"/>
+              <path d="M21 53 H61" stroke="#1f1b16" stroke-width="3.5"/><g fill="#1f1b16"><circle cx="41" cy="33" r="4.5"/><circle cx="31" cy="64" r="4"/><circle cx="51" cy="64" r="4"/><circle cx="31" cy="82" r="4"/><circle cx="51" cy="82" r="4"/><circle cx="41" cy="73" r="4"/></g></g>
+            <g transform="rotate(10 80 64)"><rect x="63" y="24" width="40" height="80" rx="7" fill="#1f1b16"/><rect x="60" y="21" width="40" height="80" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="4"/>
+              <path d="M60 61 H100" stroke="#1f1b16" stroke-width="3.5"/><g fill="#1f1b16"><circle cx="70" cy="32" r="4"/><circle cx="90" cy="50" r="4"/><circle cx="80" cy="41" r="4"/><circle cx="70" cy="72" r="4"/><circle cx="90" cy="90" r="4"/></g></g>
+          </svg>
+        </div>
+        <div class="info"><span class="name">DOMINO</span><span class="pitch">Match the ends. Empty your hand first.</span><span class="stat" id="st-domino"></span></div>
+      </a>
+      <a class="game" href="ludo/">
+        <div class="art" style="background:#f3e3c4">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="11" y="11" width="102" height="102" rx="6" fill="#1f1b16"/>
+            <rect x="7" y="7" width="102" height="102" rx="6" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/>
+            <rect x="7" y="7" width="40" height="40" fill="#7fb6a8" stroke="#1f1b16" stroke-width="3"/><rect x="69" y="7" width="40" height="40" fill="#e8b04b" stroke="#1f1b16" stroke-width="3"/>
+            <rect x="7" y="69" width="40" height="40" fill="#e07e57" stroke="#1f1b16" stroke-width="3"/><rect x="69" y="69" width="40" height="40" fill="#8fb3dc" stroke="#1f1b16" stroke-width="3"/>
+            <polygon points="47,47 69,47 58,58" fill="#e8b04b" stroke="#1f1b16" stroke-width="2"/><polygon points="69,47 69,69 58,58" fill="#8fb3dc" stroke="#1f1b16" stroke-width="2"/>
+            <polygon points="47,69 69,69 58,58" fill="#e07e57" stroke="#1f1b16" stroke-width="2"/><polygon points="47,47 47,69 58,58" fill="#7fb6a8" stroke="#1f1b16" stroke-width="2"/>
+            <g stroke="#1f1b16" stroke-width="2.5"><circle cx="27" cy="27" r="8" fill="#fbf6ea"/><circle cx="89" cy="89" r="8" fill="#fbf6ea"/><circle cx="58" cy="90" r="7" fill="#e07e57"/><circle cx="89" cy="27" r="8" fill="#fbf6ea"/><circle cx="27" cy="89" r="8" fill="#fbf6ea"/></g>
+          </svg>
+        </div>
+        <div class="info"><span class="name">LUDO</span><span class="pitch">Race three bots home. Send them back.</span><span class="stat" id="st-ludo"></span></div>
+      </a>
+      <a class="game" href="faceoff/">
+        <div class="art" style="background:#e5e0f0">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <g transform="translate(6 18) rotate(-7 26 36)"><rect width="52" height="66" rx="7" fill="#fbf6ea" stroke="#1f1b16" stroke-width="3.5"/>
+              <rect x="0" y="0" width="52" height="66" rx="7" fill="url(#bk)"/></g>
+            <defs><pattern id="bk" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#e8b04b"/><rect width="5" height="10" fill="#e07e57"/></pattern></defs>
+            <g transform="translate(6 18) rotate(-7 26 36)"><rect width="52" height="66" rx="7" fill="none" stroke="#1f1b16" stroke-width="3.5"/><text x="26" y="44" text-anchor="middle" font-family="Archivo Black,Impact,sans-serif" font-size="30" fill="#fbf6ea" stroke="#1f1b16" stroke-width="1.5">?</text></g>
+            <g transform="translate(58 12) rotate(6 28 40)">
+              <rect width="56" height="76" rx="7" fill="#fff" stroke="#1f1b16" stroke-width="3.5"/>
+              <path d="M8 76 Q9 60 28 58 Q47 60 48 76 Z" fill="#7fb6a8" stroke="#1f1b16" stroke-width="2.5"/>
+              <ellipse cx="28" cy="36" rx="14" ry="15" fill="#eab58f" stroke="#1f1b16" stroke-width="2.5"/>
+              <path d="M14 34 Q13 19 28 19 Q43 19 42 34 Q40 27 35 25 Q28 28 21 25 Q16 27 14 34Z" fill="#c9582e" stroke="#1f1b16" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="23" cy="37" r="2.6" fill="#1f1b16"/><circle cx="33" cy="37" r="2.6" fill="#1f1b16"/>
+              <path d="M23 44 Q28 47.5 33 44" stroke="#1f1b16" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+              <rect x="0" y="62" width="56" height="14" fill="#1f1b16"/><rect x="0" y="62" width="56" height="14" rx="0" fill="#1f1b16"/>
+            </g>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="name">FACE OFF</span>
+          <span class="pitch">Guess who against a bot that plays to win.</span>
+          <span class="stat" id="st-face"></span>
+        </div>
+      </a>
+    </div>
+    <h2 class="sec">Arcade</h2>
+    <div class="grid">
+      <a class="game" href="pool/">
+        <div class="art" style="background:#d5e7dc">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="10" y="10" width="104" height="104" rx="12" fill="#1f1b16"/>
+            <rect x="6" y="6" width="104" height="104" rx="12" fill="#6b4428" stroke="#1f1b16" stroke-width="3.5"/>
+            <rect x="17" y="17" width="82" height="82" rx="3" fill="#3e8a70" stroke="#1f1b16" stroke-width="2.5"/>
+            <g fill="#1f1b16"><circle cx="18" cy="18" r="8"/><circle cx="98" cy="18" r="8"/><circle cx="18" cy="98" r="8"/><circle cx="98" cy="98" r="8"/></g>
+            <g stroke="#1f1b16" stroke-width="2.5">
+              <circle cx="48" cy="46" r="11" fill="#1f1b16"/>
+              <g><circle cx="72" cy="40" r="11" fill="#fbf6ea"/><path d="M61.5 36 H82.5 V44 H61.5Z" fill="#d9452b" stroke="none"/><circle cx="72" cy="40" r="11" fill="none"/></g>
+              <circle cx="62" cy="80" r="11" fill="#fbf6ea"/>
+            </g>
+            <circle cx="48" cy="46" r="5" fill="#fbf6ea"/><text x="48" y="49.5" text-anchor="middle" font-family="Archivo Black,Impact,sans-serif" font-size="8" fill="#1f1b16">8</text>
+            <circle cx="58.5" cy="76.5" r="2.6" fill="#fff" opacity=".8"/>
+            <g transform="translate(62 80) rotate(52)"><rect x="15" y="-3" width="62" height="6" rx="3" fill="#e0b77a" stroke="#1f1b16" stroke-width="2.5"/><rect x="15" y="-3" width="6" height="6" fill="#8fb3dc" stroke="#1f1b16" stroke-width="2"/></g>
+          </svg>
+        </div>
+        <div class="info"><span class="name">POOL</span><span class="pitch">8-ball against a bot, or pass the phone.</span><span class="stat" id="st-pool"></span></div>
+      </a>
+      <a class="game" href="golf/">
+        <div class="art" style="background:#dcebd2">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <path d="M20 108 L20 36 Q20 14 42 14 L98 14 Q108 14 108 24 L108 108Z" fill="#1f1b16"/>
+            <path d="M26 104 L26 38 Q26 20 44 20 L96 20 Q102 20 102 26 L102 104Z" fill="#7fb069"/>
+            <rect x="40" y="62" width="44" height="20" rx="8" fill="#ead6a2"/>
+            <ellipse cx="80" cy="40" rx="8" ry="5" fill="#14110e"/><path d="M80 40V12" stroke="#1f1b16" stroke-width="3"/><path d="M80 12L96 17L80 22Z" fill="#d9452b" stroke="#1f1b16" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="46" cy="94" r="6" fill="#fff" stroke="#1f1b16" stroke-width="2"/><path d="M50 88 L72 50" stroke="#fbf6ea" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="info"><span class="name">MINI GOLF</span><span class="pitch">Nine holes. Pull back, let go.</span><span class="stat" id="st-golf"></span></div>
+      </a>
+      <a class="game" href="darts/">
+        <div class="art" style="background:#d6e6f0">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="63" cy="64" r="52" fill="#1f1b16"/><circle cx="60" cy="60" r="52" fill="#1f1b16"/>
+            <circle cx="60" cy="60" r="42" fill="#fbf6ea"/>
+            <g fill="#1f1b16"><path d="M60 60 L60 18 A42 42 0 0 1 73 20Z"/><path d="M60 60 L85 26 A42 42 0 0 1 95 37Z"/><path d="M60 60 L101 52 A42 42 0 0 1 101 68Z"/>
+            <path d="M60 60 L95 83 A42 42 0 0 1 85 94Z"/><path d="M60 60 L73 100 A42 42 0 0 1 60 102Z"/><path d="M60 60 L35 94 A42 42 0 0 1 25 83Z"/>
+            <path d="M60 60 L19 68 A42 42 0 0 1 19 52Z"/><path d="M60 60 L25 37 A42 42 0 0 1 35 26Z"/><path d="M60 60 L47 20 A42 42 0 0 1 60 18Z"/></g>
+            <circle cx="60" cy="60" r="42" fill="none" stroke="#d9452b" stroke-width="5"/><circle cx="60" cy="60" r="25" fill="none" stroke="#5f9e4c" stroke-width="4"/>
+            <circle cx="60" cy="60" r="8" fill="#5f9e4c"/><circle cx="60" cy="60" r="4" fill="#d9452b"/>
+            <g transform="translate(66 50) rotate(-38)"><rect x="0" y="-2" width="30" height="4" fill="#1f1b16"/><path d="M26 -2 L40 -9 L36 0 L40 9 L26 2Z" fill="#e07e57" stroke="#1f1b16" stroke-width="2" stroke-linejoin="round"/></g>
+          </svg>
+        </div>
+        <div class="info"><span class="name">DARTS</span><span class="pitch">301 against a bot. Time your aim.</span><span class="stat" id="st-darts"></span></div>
+      </a>
+      <a class="game" href="salvo/">
+        <div class="art" style="background:#d9e6f2">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="10" y="10" width="104" height="104" rx="8" fill="#1f1b16"/><rect x="6" y="6" width="104" height="104" rx="8" fill="#a7c4e2" stroke="#1f1b16" stroke-width="3.5"/>
+            <path d="M32 6V110M58 6V110M84 6V110M6 32H110M6 58H110M6 84H110" stroke="#1f1b16" stroke-width="1.5" opacity=".3"/>
+            <rect x="12" y="38" width="66" height="14" rx="7" fill="#5b534a" stroke="#1f1b16" stroke-width="2.5"/>
+            <circle cx="45" cy="45" r="7" fill="#d9452b" stroke="#1f1b16" stroke-width="2.5"/><circle cx="97" cy="19" r="3.5" fill="#fbf6ea"/><circle cx="71" cy="97" r="3.5" fill="#fbf6ea"/><circle cx="19" cy="71" r="3.5" fill="#fbf6ea"/>
+            <path d="M84 74 l10 10 M94 74 l-10 10" stroke="#e8b04b" stroke-width="4" stroke-linecap="round"/></svg>
+        </div>
+        <div class="info"><span class="name">SALVO</span><span class="pitch">Sink the bot's fleet before it sinks yours.</span><span class="stat" id="st-salvo"></span></div>
+      </a>
+      <a class="game" href="2048/">
+        <div class="art" style="background:#f6e3c0">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <rect x="10" y="10" width="104" height="104" rx="10" fill="#1f1b16"/><rect x="6" y="6" width="104" height="104" rx="10" fill="#1f1b16"/>
+            <rect x="12" y="12" width="44" height="44" rx="6" fill="#e8b04b"/><rect x="60" y="12" width="44" height="44" rx="6" fill="#fbf6ea"/>
+            <rect x="12" y="60" width="44" height="44" rx="6" fill="#d9452b"/><rect x="60" y="60" width="44" height="44" rx="6" fill="#b89ad4"/>
+            <g font-family="Archivo Black,Impact,sans-serif" text-anchor="middle" fill="#1f1b16"><text x="34" y="42" font-size="22">8</text><text x="82" y="42" font-size="22">2</text><text x="34" y="89" font-size="19">64</text><text x="82" y="87" font-size="13">2048</text></g></svg>
+        </div>
+        <div class="info"><span class="name">2048</span><span class="pitch">Swipe, merge, reach 2048.</span><span class="stat" id="st-2048"></span></div>
+      </a>
+    </div>
   </section>
 
   <p class="note">Progress, best scores and records save on this device.</p>
@@ -300,8 +385,19 @@ const mb=['hard','medium','easy'].map(k=>[k,get('ms-best-'+k,null)]).find(x=>x[1
 set('st-mines',mb?`Best ${mb[0]} ${fmt(mb[1])}`:'No clears yet',!mb);
 const pr=get('pl-record',{}),pw=(pr.easyW||0)+(pr.hardW||0),pl=(pr.easyL||0)+(pr.hardL||0);
 set('st-pool',pw+pl?`Record ${pw}–${pl}`:"Rack 'em up",!(pw+pl));
+const recOf=(k)=>{const r=get(k,{});return [(r.easyW||0)+(r.hardW||0),(r.easyL||0)+(r.hardL||0)]};
+const fs=get('fv-stats',{}),fdone=get('fv-daily-done',null)===today;
+set('st-fiver',fdone?`Daily done ✓${fs.streak?` · streak ${fs.streak}`:''}`:'New word waiting',!fdone);
+const sdone=get('sd-daily',null)===today;set('st-sudoku',sdone?'Daily done ✓':'New daily waiting',!sdone);
+const so=get('sol-stats',{});set('st-sol',so.played?`Won ${so.won||0} of ${so.played}`:"Deck's shuffled",!so.played);
+const [c4w,c4l]=recOf('c4-record');set('st-c4',c4w+c4l?`Record ${c4w}–${c4l}`:'Discs ready',!(c4w+c4l));
+const [ckw,ckl]=recOf('ck-record');set('st-ck',ckw+ckl?`Record ${ckw}–${ckl}`:'Your move',!(ckw+ckl));
+const [svw,svl]=recOf('sv-record');set('st-salvo',svw+svl?`Record ${svw}–${svl}`:'Fleet at sea',!(svw+svl));
+const gr=get('golf-round',null),gb=get('golf-rec',{});
+set('st-golf',gr&&gr.hole<9&&(gr.hole>0)?`Round on hole ${gr.hole+1}`:gb.best!=null?`Best ${gb.best===0?'E':gb.best>0?'+'+gb.best:gb.best}`:'Tee time',!(gr&&gr.hole>0)&&gb.best==null);
+const g2=get('g2048-best',0);set('st-2048',g2?`Best ${g2.toLocaleString()}`:'No score yet',!g2);
 document.addEventListener('gesturestart',e=>e.preventDefault());
-document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.games'))e.preventDefault()},{passive:false});
 </script>
 </body>
 </html>

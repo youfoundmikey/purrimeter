@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arkade">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Solitaire · Arkade</title>
+<meta name="description" content="Klondike solitaire. Tap to auto-move, drag to place.">
+<meta name="theme-color" content="#f3ead8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%233e7a66'/%3E%3Crect x='9' y='6' width='20' height='28' rx='3' fill='%23fbf6ea' stroke='%231f1b16' stroke-width='2' transform='rotate(-8 19 20)'/%3E%3Ctext x='19' y='25' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='13' fill='%23d9452b'%3E%E2%99%A5%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ead8;--card:#fbf6ea;--ink:#1f1b16;--muted:#6b5f50;--accent:#d9582b;--yes:#5f9e4c;--no:#d9452b;--red:#c9382a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+  font-family:"Space Grotesk",system-ui,-apple-system,sans-serif}
+body{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background-image:radial-gradient(rgba(31,27,22,.05) 1px,transparent 1px);background-size:6px 6px}
+.stripe{flex:none;height:8px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,#e8b04b 22px 44px,#7fb6a8 44px 66px,#a7c4e2 66px 88px)}
+.app{flex:1;min-height:0;width:100%;max-width:640px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;gap:9px;
+  padding:10px max(10px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-right))}
+.app>*{flex:none}
+header.top{display:flex;align-items:center;gap:10px;text-align:center;padding:0 4px}
+header.top .ttl{flex:1;min-width:0}
+header.top h1{font-family:"Archivo Black",Impact,sans-serif;font-size:clamp(24px,7.6vw,38px);letter-spacing:.04em;margin:0;line-height:1;white-space:nowrap}
+header.top .tag{font-size:13px;margin:2px 0 0;color:var(--muted);font-style:italic}
+@media (max-height:760px){header.top .tag{display:none}}
+.home,.info{flex:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--card);
+  box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:inherit;font-weight:700;
+  font-size:19px;line-height:1;color:var(--ink);text-decoration:none;padding:0;margin:0;cursor:pointer}
+.home:active,.info:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.modes{display:flex;justify-content:center;gap:clamp(3px,1.2vw,6px);flex-wrap:nowrap}
+.pill{font:inherit;font-weight:700;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;
+  padding:5px clamp(7px,2.5vw,12px);font-size:clamp(12.5px,3.7vw,14px);white-space:nowrap;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.hud{display:flex;align-items:center;justify-content:space-between;font-weight:700;gap:8px;padding:0 4px}
+.stat{min-width:70px}
+.stat:last-child{text-align:right}
+.stat .k{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:21px;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.stage{flex:1 1 auto!important;min-height:0;position:relative}
+.tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;padding:0 4px}
+.tool{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--card);color:var(--ink);border-radius:10px;
+  padding:10px 6px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.tool.primary{background:var(--ink);color:var(--card)}
+.tool:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.tool:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.overlay{position:fixed;inset:0;background:rgba(31,27,22,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:3000}
+.overlay.hidden{display:none}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:22px 18px 18px;max-width:380px;width:100%;
+  text-align:center;box-shadow:8px 8px 0 var(--ink);max-height:calc(100dvh - 32px);overflow:auto}
+.card h2{margin:0;font-family:"Archivo Black",Impact,sans-serif;font-size:24px;letter-spacing:.03em}
+.card p{margin:12px 0 0;line-height:1.45}
+.card .stats{font-weight:700;font-size:18px}
+.card .btns{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.card .btns .tool{padding:10px 16px}
+.stamp{display:inline-block;font-family:"Archivo Black",Impact,sans-serif;font-size:32px;color:var(--accent);
+  border:4px double var(--accent);padding:6px 14px;border-radius:8px;transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1)}
+.stamp.good{color:var(--yes);border-color:var(--yes)}
+@keyframes stamp{from{transform:rotate(-8deg) scale(2.4);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.mbody{text-align:left}
+.mbody h3{margin:0 0 4px;font-size:16px}
+.mbody ul{padding-left:18px;margin:0 0 14px;line-height:1.45}
+.mbody .rec{margin:0 0 12px;font-weight:700}
+
+/* ===== Solitaire ===== */
+#table{position:absolute;inset:0;touch-action:none}
+.slot{position:absolute;border:2.5px dashed rgba(31,27,22,.28);border-radius:7px;display:flex;align-items:center;justify-content:center;
+  color:rgba(31,27,22,.3);font-family:"Archivo Black",Impact,sans-serif;font-size:calc(var(--cw)*.42)}
+.slot.stock{cursor:pointer}
+.cd{position:absolute;left:0;top:0;width:var(--cw);height:var(--ch);border-radius:7px;will-change:transform;
+  transition:transform .2s cubic-bezier(.3,.8,.4,1);cursor:pointer;contain:layout paint}
+.cd.drag{transition:none}
+.cd .fc{position:absolute;inset:0;border-radius:7px;background:#fff;border:2px solid var(--ink);box-shadow:0 2px 0 rgba(31,27,22,.55);overflow:hidden}
+.cd .rk{position:absolute;left:5%;top:2%;font-family:"Archivo Black",Impact,sans-serif;font-size:calc(var(--cw)*.36);line-height:1;letter-spacing:-.04em}
+.cd .su{position:absolute;right:6%;top:3%;font-size:calc(var(--cw)*.3);line-height:1}
+.cd .bg{position:absolute;left:0;right:0;bottom:6%;text-align:center;font-size:calc(var(--cw)*.62);line-height:1}
+.cd.red .fc{color:var(--red)}
+.cd.down .fc{background:repeating-linear-gradient(45deg,#e07e57 0 5px,#e8b04b 5px 10px)}
+.cd.down .fc::after{content:"";position:absolute;inset:3px;border:2px solid rgba(251,246,234,.8);border-radius:4px}
+.cd.down .rk,.cd.down .su,.cd.down .bg{display:none}
+.cd.nope{animation:nope .3s}
+@keyframes nope{25%{margin-left:-5px}75%{margin-left:5px}}
+.cd.glow .fc{box-shadow:0 0 0 3px #e8b04b,0 2px 0 rgba(31,27,22,.55)}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main class="app">
+  <header class="top"><a class="home" href="../" aria-label="Back to Arkade">&larr;</a><div class="ttl"><h1>SOLITAIRE</h1><p class="tag">klondike. patience pays.</p></div><button class="info" id="infoBtn" aria-label="How to play">?</button></header>
+  <nav class="modes" aria-label="Draw">
+    <button class="pill" data-draw="1">Draw 1</button>
+    <button class="pill" data-draw="3">Draw 3</button>
+  </nav>
+  <section class="hud">
+    <div class="stat"><span class="k">Moves</span><span class="v" id="moves">0</span></div>
+    <div class="label" id="label">Draw 1</div>
+    <div class="stat"><span class="k">Time</span><span class="v" id="timer">0:00</span></div>
+  </section>
+  <div class="stage" id="stage"><div id="table"></div></div>
+  <section class="tools">
+    <button class="tool" id="undo">Undo</button>
+    <button class="tool" id="auto" disabled>Auto finish</button>
+    <button class="tool" id="newBtn">New deal</button>
+  </section>
+</main>
+<template id="howto"><ul>
+  <li>Move every card up to the four <b>foundations</b> (top right), building each suit from <b>Ace to King</b>.</li>
+  <li>In the seven columns, stack cards <b>down in alternating colors</b> (black 9 on a red 10). Only a <b>King</b> can go in an empty column.</li>
+  <li><b>Tap</b> a card to send it to the best spot. Or <b>drag</b> it (with any cards on top of it) where you want it.</li>
+  <li>Tap the deck (top left) to turn cards over. When it runs out, tap the empty spot to flip the pile back.</li>
+  <li>Once every card is face up, <b>Auto finish</b> does the rest.</li>
+</ul>
+</template>
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function showOverlay(html){$('#card').innerHTML=html;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+function recordLine(){return typeof RECORD_LINE==='function'?RECORD_LINE():''}
+$('#infoBtn').onclick=()=>{
+  const rec=recordLine();
+  showOverlay(`<div class="mbody">${rec?`<p class="rec">${rec}</p>`:''}<h3>How to play</h3>${$('#howto').innerHTML}</div>
+    <div class="btns"><button class="tool" id="infoClose">Got it</button></div>`);
+  $('#infoClose').onclick=hideOverlay;
+};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.overlay .card'))e.preventDefault()},{passive:false});
+
+//#ENGINE
+// card id 0..51: suit = id/13 (0 ♠ 1 ♥ 2 ♦ 3 ♣), rank = id%13 + 1
+const suit=id=>Math.floor(id/13),rank=id=>id%13+1,red=id=>suit(id)===1||suit(id)===2;
+function deal(){
+  const d=[...Array(52).keys()];for(let i=51;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
+  const S={stock:[],waste:[],found:[[],[],[],[]],tab:[[],[],[],[],[],[],[]],up:new Array(52).fill(false)};
+  for(let c=0;c<7;c++)for(let k=0;k<=c;k++){const id=d.pop();S.tab[c].push(id);if(k===c)S.up[id]=true}
+  S.stock=d;return S;
+}
+const canFound=(S,id,f)=>{const p=S.found[f],top=p[p.length-1];return suit(id)===f&&(top==null?rank(id)===1:rank(id)===rank(top)+1)};
+const foundFor=(S,id)=>{const f=suit(id);return canFound(S,id,f)?f:-1};
+const canTab=(S,id,c)=>{const p=S.tab[c],top=p[p.length-1];return top==null?rank(id)===13:S.up[top]&&red(top)!==red(id)&&rank(top)===rank(id)+1};
+// where is a card: {pile:'tab'|'waste'|'found'|'stock', i, k}
+function locate(S,id){
+  for(let c=0;c<7;c++){const k=S.tab[c].indexOf(id);if(k>=0)return {pile:'tab',i:c,k}}
+  for(let f=0;f<4;f++){const k=S.found[f].indexOf(id);if(k>=0)return {pile:'found',i:f,k}}
+  let k=S.waste.indexOf(id);if(k>=0)return {pile:'waste',i:0,k};
+  return {pile:'stock',i:0,k:S.stock.indexOf(id)};
+}
+function take(S,loc){ // remove and return the card(s) from loc
+  if(loc.pile==='tab')return S.tab[loc.i].splice(loc.k);
+  if(loc.pile==='found')return S.found[loc.i].splice(loc.k);
+  return S.waste.splice(loc.k);
+}
+function flipTops(S){for(const p of S.tab)if(p.length&&!S.up[p[p.length-1]])S.up[p[p.length-1]]=true}
+//#END
+
+let DRAW=+store.get('sol-draw',1);if(![1,3].includes(DRAW))DRAW=1;
+const ST=store.get('sol-stats',{played:0,won:0,best1:null,best3:null});
+const RECORD_LINE=()=>`Won ${ST.won} of ${ST.played}${ST.best1?` · best draw-1 ${fmt(ST.best1)}`:''}${ST.best3?` · best draw-3 ${fmt(ST.best3)}`:''}`;
+const SUITS=['♠','♥','♦','♣'],RANKS=['','A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let S=null,G=null,hist=[],els=[],cw=0,ch=0,gap=0,timer=null;
+const table=$('#table');
+
+for(let id=0;id<52;id++){
+  const d=document.createElement('div');d.className='cd'+(red(id)?' red':'');d.dataset.id=id;
+  d.innerHTML=`<div class="fc"><span class="rk">${RANKS[rank(id)]}</span><span class="su">${SUITS[suit(id)]}</span><span class="bg">${SUITS[suit(id)]}</span></div>`;
+  els.push(d);
+}
+function newGame(){
+  hideOverlay();clearInterval(timer);
+  S=deal();hist=[];G={moves:0,t0:null,elapsed:0,counted:false,done:false};
+  table.innerHTML='';
+  const slots=['stock','waste','f0','f1','f2','f3','t0','t1','t2','t3','t4','t5','t6'];
+  for(const s of slots){const d=document.createElement('div');d.className='slot'+(s==='stock'?' stock':'');d.dataset.slot=s;
+    if(s[0]==='f')d.textContent=SUITS[+s[1]];table.appendChild(d)}
+  for(const e of els)table.appendChild(e);
+  document.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.draw===DRAW));
+  $('#label').textContent=`Draw ${DRAW}`;$('#timer').textContent='0:00';
+  layout(true);hud();
+}
+function startClock(){
+  if(G.t0)return;G.t0=Date.now();
+  if(!G.counted){G.counted=true;ST.played++;store.set('sol-stats',ST)}
+  timer=setInterval(()=>{if(!G.done)$('#timer').textContent=fmt(Date.now()-G.t0)},500);
+}
+function slotXY(name){
+  if(name==='stock')return [0,0];if(name==='waste')return [cw+gap,0];
+  if(name[0]==='f')return [(3+ +name[1])*(cw+gap),0];
+  return [(+name[1])*(cw+gap),ch+gap*2.4];
+}
+function layout(instant){
+  const W=table.clientWidth,H=table.clientHeight;
+  gap=Math.max(4,Math.round(W*.014));
+  cw=Math.min((W-6*gap)/7,H/(1.42*3.4));ch=cw*1.42;
+  const ox=(W-(7*cw+6*gap))/2;
+  table.style.setProperty('--cw',cw+'px');table.style.setProperty('--ch',ch+'px');
+  table.querySelectorAll('.slot').forEach(s=>{const [x,y]=slotXY(s.dataset.slot);Object.assign(s.style,{left:ox+x+'px',top:y+'px',width:cw+'px',height:ch+'px'})});
+  const stockSlot=table.querySelector('[data-slot=stock]');stockSlot.textContent=S.stock.length?'':S.waste.length?'↻':'';
+  const place=(id,x,y,z)=>{const e=els[id];e.classList.toggle('down',!S.up[id]);
+    if(instant){e.style.transition='none'}e.style.transform=`translate(${ox+x}px,${y}px)`;e.style.zIndex=z;if(instant){void e.offsetWidth;e.style.transition=''}};
+  S.stock.forEach((id,k)=>place(id,0,0,10+k));
+  S.waste.forEach((id,k)=>{const off=DRAW===3?Math.max(0,k-Math.max(0,S.waste.length-3)):0;place(id,cw+gap+off*cw*.3,0,100+k)});
+  S.found.forEach((p,f)=>p.forEach((id,k)=>place(id,(3+f)*(cw+gap),0,200+k)));
+  const top=ch+gap*2.4,avail=H-top-ch-4;
+  S.tab.forEach((p,c)=>{
+    const downs=p.filter(id=>!S.up[id]).length,ups=p.length-downs;
+    let dOff=ch*.13,uOff=ch*.3;
+    const need=downs*dOff+Math.max(0,ups-1)*uOff;
+    if(need>avail&&ups>1){uOff=Math.max(ch*.14,(avail-downs*dOff)/(ups-1));if(downs*dOff+(ups-1)*uOff>avail)dOff=Math.max(ch*.06,(avail-(ups-1)*uOff)/Math.max(1,downs))}
+    let y=top;p.forEach((id,k)=>{place(id,c*(cw+gap),y,300+c*30+k);y+=S.up[id]?uOff:dOff});
+  });
+}
+addEventListener('resize',()=>S&&layout(true));
+function hud(){
+  $('#moves').textContent=G.moves;$('#undo').disabled=!hist.length||G.done;
+  const auto=!S.stock.length&&!S.waste.length&&S.tab.every(p=>p.every(id=>S.up[id]))&&S.found.some(p=>p.length<13);
+  $('#auto').disabled=!auto||G.done;
+}
+function snap(){hist.push(JSON.stringify(S));if(hist.length>300)hist.shift()}
+function after(){flipTops(S);G.moves++;layout();hud();startClock();checkWin()}
+function nope(id){const e=els[id];e.classList.remove('nope');void e.offsetWidth;e.classList.add('nope');if(navigator.vibrate)navigator.vibrate(30)}
+
+function drawStock(){
+  if(G.done)return;
+  if(!S.stock.length){if(!S.waste.length)return;snap();S.stock=S.waste.reverse();S.waste=[];for(const id of S.stock)S.up[id]=false;after();return}
+  snap();
+  for(let k=0;k<DRAW&&S.stock.length;k++){const id=S.stock.pop();S.up[id]=true;S.waste.push(id)}
+  after();
+}
+function movable(loc){
+  if(loc.pile==='tab')return S.up[S.tab[loc.i][loc.k]];
+  if(loc.pile==='waste')return loc.k===S.waste.length-1;
+  if(loc.pile==='found')return loc.k===S.found[loc.i].length-1;
+  return false;
+}
+function tryMove(loc,dest){ // dest {pile:'tab'|'found', i}
+  const pile=loc.pile==='tab'?S.tab[loc.i]:loc.pile==='found'?S.found[loc.i]:S.waste;
+  const id=pile[loc.k],count=pile.length-loc.k;
+  if(dest.pile===loc.pile&&dest.i===loc.i)return false;
+  if(dest.pile==='found'){if(count!==1||!canFound(S,id,dest.i))return false}
+  else if(!canTab(S,id,dest.i))return false;
+  snap();const cards=take(S,loc);(dest.pile==='found'?S.found:S.tab)[dest.i].push(...cards);
+  after();return true;
+}
+function autoMove(loc){
+  const pile=loc.pile==='tab'?S.tab[loc.i]:loc.pile==='found'?S.found[loc.i]:S.waste;
+  const id=pile[loc.k],single=loc.k===pile.length-1;
+  if(single&&loc.pile!=='found'){const f=foundFor(S,id);if(f>=0&&tryMove(loc,{pile:'found',i:f}))return}
+  // prefer building on a real card; empty columns only when it frees something up
+  const order=[...Array(7).keys()].filter(c=>c!==loc.i||loc.pile!=='tab');
+  for(const c of order)if(S.tab[c].length&&tryMove(loc,{pile:'tab',i:c}))return;
+  if(!(loc.pile==='tab'&&loc.k===0))for(const c of order)if(!S.tab[c].length&&tryMove(loc,{pile:'tab',i:c}))return;
+  nope(id);
+}
+function checkWin(){
+  if(S.found.some(p=>p.length<13))return;
+  G.done=true;clearInterval(timer);const t=Date.now()-G.t0;G.elapsed=t;$('#timer').textContent=fmt(t);
+  ST.won++;const k='best'+DRAW,isBest=!ST[k]||t<ST[k];if(isBest)ST[k]=t;store.set('sol-stats',ST);hud();
+  // victory lap: bounce the kings
+  S.found.forEach(p=>{const e=els[p[12]];e.animate([{transform:e.style.transform},{transform:e.style.transform+' translateY(-18px) rotate(-8deg)'},{transform:e.style.transform}],{duration:600,iterations:2})});
+  setTimeout(()=>{showOverlay(`<div class="stamp good">CLEARED</div><p class="stats">${fmt(t)} · ${G.moves} moves</p>
+    <p>${isBest?`New best for draw ${DRAW}.`:`Best draw ${DRAW}: ${fmt(ST[k])}.`}</p><p>${RECORD_LINE()}</p>
+    <div class="btns"><button class="tool primary" id="again">Deal again</button></div>`);$('#again').onclick=newGame},900);
+}
+async function autoFinish(){
+  $('#auto').disabled=true;
+  while(S.found.some(p=>p.length<13)){
+    let moved=false;
+    for(let c=0;c<7&&!moved;c++){const p=S.tab[c];if(!p.length)continue;const id=p[p.length-1],f=foundFor(S,id);
+      if(f>=0){snap();S.found[f].push(p.pop());G.moves++;layout();moved=true}}
+    if(!moved)break;
+    await sleep(70);
+  }
+  hud();checkWin();
+}
+
+// ---------- input: tap = auto-move, drag = place ----------
+let pd=null;
+function dropTarget(x,y){
+  const r=table.getBoundingClientRect(),ox=(r.width-(7*cw+6*gap))/2,lx=x-r.left-ox,ly=y-r.top;
+  const col=Math.max(0,Math.min(6,Math.floor((lx+gap/2)/(cw+gap))));
+  if(ly<ch+gap*1.2){return col>=3?{pile:'found',i:col-3}:null}
+  return {pile:'tab',i:col};
+}
+table.addEventListener('pointerdown',e=>{
+  if(!S||G.done||!$('#overlay').classList.contains('hidden'))return;
+  e.preventDefault();
+  const cardEl=e.target.closest('.cd'),slot=e.target.closest('.slot');
+  if(slot&&slot.dataset.slot==='stock'&&!cardEl){drawStock();return}
+  if(!cardEl)return;
+  const id=+cardEl.dataset.id,loc=locate(S,id);
+  if(loc.pile==='stock'){drawStock();return}
+  if(!movable(loc)){nope(id);return}
+  const pile=loc.pile==='tab'?S.tab[loc.i]:loc.pile==='found'?S.found[loc.i]:S.waste;
+  const ids=pile.slice(loc.k);
+  pd={loc,ids,x:e.clientX,y:e.clientY,drag:false,base:ids.map(i=>els[i].style.transform)};
+  try{table.setPointerCapture(e.pointerId)}catch(_){}
+});
+table.addEventListener('pointermove',e=>{
+  if(!pd)return;
+  const dx=e.clientX-pd.x,dy=e.clientY-pd.y;
+  if(!pd.drag){if(Math.hypot(dx,dy)<7)return;pd.drag=true;pd.ids.forEach((i,k)=>{els[i].classList.add('drag');els[i].style.zIndex=1000+k})}
+  pd.ids.forEach((i,k)=>{els[i].style.transform=`${pd.base[k]} translate(${dx}px,${dy}px)`});
+});
+function release(e){
+  if(!pd)return;const p=pd;pd=null;
+  p.ids.forEach(i=>els[i].classList.remove('drag'));
+  if(!p.drag){autoMove(p.loc);return}
+  // aim with the top-left of the grabbed card, which is what players line up
+  const r=els[p.ids[0]].getBoundingClientRect(),t=dropTarget(r.left+r.width/2,r.top+ch*.3);
+  if(!t||e.type==='pointercancel'||!tryMove(p.loc,t)){layout()}
+}
+table.addEventListener('pointerup',release);table.addEventListener('pointercancel',release);
+
+$('#undo').onclick=()=>{if(!hist.length||G.done)return;S=JSON.parse(hist.pop());G.moves++;layout();hud()};
+$('#auto').onclick=autoFinish;
+$('#newBtn').onclick=()=>{
+  if(!G||G.done||G.moves===0){newGame();return}
+  showOverlay(`<h2>New deal?</h2><p>This game counts as played.</p>
+    <div class="btns"><button class="tool" id="closeO">Keep playing</button><button class="tool primary" id="again">New deal</button></div>`);
+  $('#again').onclick=newGame;$('#closeO').onclick=hideOverlay;
+};
+document.querySelectorAll('.pill').forEach(b=>b.onclick=()=>{const d=+b.dataset.draw;if(d===DRAW)return;DRAW=d;store.set('sol-draw',d);newGame()});
+newGame();
+</script>
+</body>
+</html>
